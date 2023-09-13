@@ -127,7 +127,7 @@
 				>
 					<svelte:component this={item.icon} class="w-8 h-8 md:h-6 md:w-6" />
 					<div
-						class="hidden group-hover:block shadow p-2 rounded bg-surface-600 fixed translate-x-[50px] text-white text-sm"
+						class="hidden group-hover:block md:group-hover:hidden shadow p-2 rounded bg-surface-600 fixed translate-x-[50px] text-white text-sm"
 					>
 						{item.label}
 						<span
