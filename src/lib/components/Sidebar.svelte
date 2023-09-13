@@ -84,7 +84,6 @@
 			href: '/sales/performance'
 		}
 	];
-	$: console.log('i', $isSidebarShown);
 </script>
 
 <nav
@@ -124,9 +123,17 @@
 					href={item.href}
 					class="p-3 md:p-2 {isActive
 						? 'bg-primary-500 text-white'
-						: 'hover:bg-primary-50-900-token'} flex items-center gap-2"
+						: 'hover:bg-primary-50-900-token'} flex items-center gap-2 group"
 				>
 					<svelte:component this={item.icon} class="w-8 h-8 md:h-6 md:w-6" />
+					<div
+						class="hidden group-hover:block shadow p-2 rounded bg-surface-600 fixed translate-x-[50px] text-white text-sm"
+					>
+						{item.label}
+						<span
+							class="absolute border-[6px] border-transparent border-r-surface-600 right-[100%] top-[50%] -translate-y-[50%]"
+						/>
+					</div>
 					<p class="hidden md:block text-sm">{item.label}</p>
 				</a>
 			{:else}
