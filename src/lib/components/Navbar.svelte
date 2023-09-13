@@ -8,10 +8,10 @@
 </script>
 
 <nav class="border-b border-1 border-surface-200 dark:border-surface-500">
-	<div class="flex flex-row gap-2 items-center px-2 py-1">
-		<div class="hidden md:flex flex-row gap-1 items-center">
+	<div class="flex flex-row gap-5 items-center px-2 py-1">
+		<div class="flex flex-col md:flex-row gap-1 items-center flex-1 md:flex-0">
 			<button
-				class="hover:text-primary-400-500-token"
+				class="hover:text-primary-400-500-token hidden md:block"
 				on:click={() => {
 					isSidebarShown.update((x) => !x);
 				}}

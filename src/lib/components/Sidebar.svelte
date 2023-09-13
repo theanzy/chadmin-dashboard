@@ -92,7 +92,7 @@
 		? 'md:hidden'
 		: ''} border-r-0 md:border-r border-surface-200 dark:border-surface-500 h-full bg-surface-100-800-token md:w-44"
 >
-	<div class="hidden md:flex p-2 flex-row items-center relative">
+	<div class="hidden md:flex px-2 py-4 flex-row items-center relative">
 		<span class="font-bold text-center w-full"> CHADMIN </span>
 		<button
 			class="ml-5 text-surface-500-400-token hover:text-primary-400 absolute right-3"
