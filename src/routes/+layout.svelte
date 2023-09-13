@@ -11,9 +11,19 @@
 
 	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
 	initSidebarContext();
+
+	function loadInitialClassState() {
+		const classList = document.documentElement.classList;
+		const modeCurrent = localStorage.getItem('modeCurrent');
+		if (modeCurrent === 'false') {
+			classList.add('dark');
+		} else {
+			setInitialClassState();
+		}
+	}
 </script>
 
-<svelte:head>{@html `<script>(${setInitialClassState.toString()})();</script>`}</svelte:head>
+<svelte:head>{@html `<script>(${loadInitialClassState.toString()})();</script>`}</svelte:head>
 
 <AppShell class="min-h-screen">
 	<svelte:fragment slot="pageHeader">
@@ -22,6 +32,8 @@
 	<svelte:fragment slot="sidebarLeft">
 		<Sidebar />
 	</svelte:fragment>
-	<slot />
+	<section class="px-4 py-2">
+		<slot />
+	</section>
 	<svelte:fragment slot="pageFooter">Page Footer</svelte:fragment>
 </AppShell>

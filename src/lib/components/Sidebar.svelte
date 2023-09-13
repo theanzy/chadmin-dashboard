@@ -91,7 +91,7 @@
 	transition:slide={{ axis: 'x' }}
 	class="{$isSidebarShown
 		? 'md:hidden'
-		: ''} border-r-0 md:border-r border-surface-400-500-token h-full bg-surface-100-800-token md:w-44"
+		: ''} border-r-0 md:border-r border-surface-200 dark:border-surface-500 h-full bg-surface-100-800-token md:w-44"
 >
 	<div class="hidden md:flex p-2 flex-row items-center relative">
 		<span class="font-bold text-center w-full"> CHADMIN </span>
@@ -123,7 +123,7 @@
 				<a
 					href={item.href}
 					class="p-3 md:p-2 {isActive
-						? 'bg-primary-500'
+						? 'bg-primary-500 text-white'
 						: 'hover:bg-primary-50-900-token'} flex items-center gap-2"
 				>
 					<svelte:component this={item.icon} class="w-8 h-8 md:h-6 md:w-6" />
