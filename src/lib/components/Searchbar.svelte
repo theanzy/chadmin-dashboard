@@ -1,5 +1,5 @@
 <label
-	class="group flex gap-2 items-center focus-within:outline outline-1 rounded-sm outline-surface-800 dark:outline-surface-400 text-sm px-1 bg-surface-200-700-token"
+	class="group hidden sm:flex gap-2 items-center focus-within:outline outline-1 rounded-sm outline-surface-800 dark:outline-surface-400 text-sm px-1 bg-surface-200-700-token"
 >
 	<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" class="w-5 h-5"
 		><path

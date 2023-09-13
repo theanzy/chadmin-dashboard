@@ -3,12 +3,19 @@
 	import ThemeToggle from './ThemeToggle.svelte';
 	import UserProfileButton from './UserProfileButton.svelte';
 	import Gear from './icons/Gear.svelte';
+	import { getSidebarShown } from '$lib/context/sidebar';
+	const isSidebarShown = getSidebarShown();
 </script>
 
-<nav class="border-b border-1 border-surface-400-500-token">
-	<div class="flex flex-row gap-2 justify-between items-center container mx-auto px-4 md:px-0 py-1">
-		<div class="flex flex-row gap-1 items-center">
-			<button class="hover:text-primary-400-500-token">
+<nav class="border-b border-1 border-surface-200 dark:border-surface-500">
+	<div class="flex flex-row gap-2 items-center px-2 py-1">
+		<div class="hidden md:flex flex-row gap-1 items-center">
+			<button
+				class="hover:text-primary-400-500-token"
+				on:click={() => {
+					isSidebarShown.update((x) => !x);
+				}}
+			>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					width="24"
@@ -27,7 +34,7 @@
 			</button>
 			<Searchbar />
 		</div>
-		<div class="flex flex-row gap-2 items-center">
+		<div class="flex flex-row gap-2 items-center ml-auto">
 			<ThemeToggle />
 			<button
 				class="btn-icon btn-icon-sm relative overflow-hidden border border-1 border-transparent text-surface-700-200-token"
