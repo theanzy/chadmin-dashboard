@@ -6,7 +6,7 @@ import { productsTransactions } from '../../../schema/product_transaction';
 import { getMonthName } from '$lib/utils';
 
 export async function load() {
-	async function getMonthlySales(yaer: number) {
+	async function getMonthlySales(year: number) {
 		const transactionMonth = sql<number>`date_part('month', ${transactions.createdAt})`;
 		const monthlySales = await db
 			.select({
@@ -17,7 +17,7 @@ export async function load() {
 			.from(transactions)
 			.innerJoin(productsTransactions, eq(productsTransactions.transactionId, transactions.id))
 			.innerJoin(products, eq(products.id, productsTransactions.productId))
-			.where(eq(sql<number>`date_part('year', ${transactions.createdAt})`, yaer))
+			.where(eq(sql<number>`date_part('year', ${transactions.createdAt})`, year))
 			.groupBy(transactionMonth)
 			.orderBy(transactionMonth);
 		const result = monthlySales.map((sales) => {
