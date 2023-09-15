@@ -1,7 +1,6 @@
 <script lang="ts">
 	import * as d3 from 'd3';
 	type DataType = { x: string; y: number };
-	export let dataset: Array<DataType> = [];
 	type Margin = {
 		top: number;
 		right: number;
@@ -11,6 +10,9 @@
 
 	type TooltipValueGetter = (d: DataType) => { x: string; y: string };
 
+	export let dataset: Array<DataType> = [];
+	export let formatYValue: (y: number) => string;
+
 	function drawLineChart(
 		vizContainer: HTMLDivElement,
 
@@ -18,21 +20,11 @@
 			margin,
 			tooltipValueGetter
 		}: {
+			dataset: Array<DataType>;
 			margin: Margin;
 			tooltipValueGetter?: TooltipValueGetter;
 		}
 	) {
-		// Define the x and y domains
-		const xScale = d3.scalePoint().domain(dataset.map((d) => d.x));
-		const yMax = d3.max(dataset, (d) => d.y) ?? 0;
-		const yScale = d3.scaleLinear().domain([0, yMax]);
-
-		// Create the line generator
-		const line = d3
-			.line<{ x: string; y: number }>()
-			.x((d) => xScale(d.x))
-			.y((d) => yScale(d.y));
-
 		redraw();
 		window.addEventListener('resize', redraw);
 
@@ -49,6 +41,17 @@
 			// create tooltip div
 
 			const tooltip = d3.select(vizContainer).append('div').attr('class', 'linechart_tooltip');
+
+			// Define the x and y domains
+			const xScale = d3.scalePoint().domain(dataset.map((d) => d.x));
+			const yMax = d3.max(dataset, (d) => d.y) ?? 0;
+			const yScale = d3.scaleLinear().domain([0, yMax]);
+
+			// Create the line generator
+			const line = d3
+				.line<DataType>()
+				.x((d) => xScale(d.x))
+				.y((d) => yScale(d.y));
 
 			// Set up the x and y scales
 			xScale.range([0, width]);
@@ -69,7 +72,7 @@
 				.call(d3.axisBottom(xScale).ticks(dataset.length));
 
 			// Add the y-axis
-			svg.append('g').call(d3.axisLeft(yScale));
+			svg.append('g').call(d3.axisLeft(yScale).tickFormat(d3.format('~s')));
 
 			// Add the line path to the SVG element
 			svg
@@ -115,7 +118,6 @@
 				// Update the circle position
 				const xPos = xScale(d.x) || 0;
 				const yPos = yScale(d.y);
-				console.log({ iTarget, d, xPos, yPos });
 
 				circle.attr('cx', xPos).attr('cy', yPos);
 
@@ -155,6 +157,9 @@
 			});
 		}
 		return {
+			update(dataset: any) {
+				redraw();
+			},
 			destroy() {
 				window.removeEventListener('resize', redraw);
 			}
@@ -164,20 +169,21 @@
 
 <div
 	use:drawLineChart={{
+		dataset: dataset,
 		margin: {
 			top: 20,
 			right: 50,
 			bottom: 30,
-			left: 50
+			left: 40
 		},
 		tooltipValueGetter: (d) => {
 			return {
 				x: d.x,
-				y: `$ ${d.y}.00`
+				y: formatYValue(d.y)
 			};
 		}
 	}}
-	class="w-full h-full relative"
+	class="w-full h-full relative cursor-pointer"
 />
 
 <style lang="postcss">
