@@ -21,9 +21,9 @@
 	}
 </script>
 
-<h2 class="h3 font-bold">Overview</h2>
+<h2 class="h3 font-bold">Monthly Sales</h2>
 <h5 class="h6 text-surface-600-300-token mb-5">
-	Cumulative sales on the year {new Date().getUTCFullYear()}
+	Monthly sales made in the year {new Date().getUTCFullYear()}
 </h5>
 <ComboBox
 	bind:value={monthlyType}
