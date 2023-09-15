@@ -1,8 +1,8 @@
 import { db } from '$lib/db';
-import { transactions } from '../../schema/transactions';
+import { transactions } from '../../../schema/transactions';
 import { eq, sql } from 'drizzle-orm';
-import { products } from '../../schema/products';
-import { productsTransactions } from '../../schema/product_transaction';
+import { products } from '../../../schema/products';
+import { productsTransactions } from '../../../schema/product_transaction';
 
 // select
 // 	date_part('year', t.created_at) as transaction_year,

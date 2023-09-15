@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { ListBox, ListBoxItem, popup, type PopupSettings } from '@skeletonlabs/skeleton';
-	import LineChart from './LineChart.svelte';
+	import LineChart from '$lib/components/LineChart.svelte';
 
 	export let data;
 	let overviewType: string;

@@ -53,7 +53,7 @@
 		{
 			label: 'Overview',
 			icon: BarChartIcon,
-			href: '/sales'
+			href: '/sales/overview'
 		},
 		{
 			label: 'Daily',
