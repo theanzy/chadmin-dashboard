@@ -32,8 +32,10 @@
 	<svelte:fragment slot="sidebarLeft">
 		<Sidebar />
 	</svelte:fragment>
-	<section class="px-4 py-2">
+	<section class="px-4 py-2 flex-1">
 		<slot />
 	</section>
-	<svelte:fragment slot="pageFooter">Page Footer</svelte:fragment>
+	<svelte:fragment slot="pageFooter">
+		<div class="bg-surface-50-900-token">Page Footer</div>
+	</svelte:fragment>
 </AppShell>
