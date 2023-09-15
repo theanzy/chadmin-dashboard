@@ -76,12 +76,12 @@
 		{
 			label: 'Admin',
 			icon: Admin,
-			href: '/sales/breakdown'
+			href: '/admin'
 		},
 		{
 			label: 'Performance',
 			icon: LineChartIcon,
-			href: '/sales/performance'
+			href: '/performance'
 		}
 	];
 </script>
@@ -122,8 +122,8 @@
 				<a
 					href={item.href}
 					class="p-3 md:p-2 {isActive
-						? 'bg-primary-500 text-white'
-						: 'hover:bg-primary-50-900-token'} flex items-center gap-2 group"
+						? 'text-primary-500'
+						: 'hover:text-primary-400'} flex items-center gap-2 group"
 				>
 					<svelte:component this={item.icon} class="w-8 h-8 md:h-6 md:w-6" />
 					<div
