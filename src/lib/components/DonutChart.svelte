@@ -79,8 +79,7 @@
 			.data(chart_data)
 			.enter()
 			.append('text')
-			.attr('font-size', 14)
-			.attr('font-weight', 'bold')
+
 			.attr('fill', 'currentColor')
 			.text((d) => {
 				return d.data.label;
