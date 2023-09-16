@@ -129,8 +129,7 @@
 			const i = bisect(dataset, x0, 1);
 			const d0 = dataset[i - 1];
 			const d1 = dataset[i];
-			const dTarget =
-				x0.getUTCDate() - d0.x.getUTCDate() > d1.x.getUTCDate() - x0.getUTCDate() ? d1 : d0;
+			const dTarget = x0.getTime() - d0.x.getTime() > d1.x.getTime() - x0.getTime() ? d1 : d0;
 			const xPos = xScale(dTarget.x);
 			const yPos = yScale(dTarget.y);
 
