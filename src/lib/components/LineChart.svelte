@@ -1,6 +1,5 @@
 <script lang="ts">
 	import * as d3 from 'd3';
-	type DataType = { x: string; y: number };
 	type SeriesDataType = { x: Date; y: number };
 	type Margin = {
 		top: number;
@@ -11,10 +10,9 @@
 
 	type TooltipValueGetter = (d: SeriesDataType) => { x: string; y: string };
 
-	export let dataset: Array<DataType> = [];
+	export let dataset: Array<SeriesDataType> = [];
 	export let tooltipValueGetter: TooltipValueGetter;
 
-	const utcParse = d3.utcParse('%B');
 	const bisect = d3.bisector((d: any) => d.x).left;
 
 	function drawLineChart(
@@ -174,7 +172,7 @@
 
 			tooltip.style('left', `${tooltipXPos}px`).style('top', `${tooltipYPos}px`);
 		}
-		function updateChart(dataset) {
+		function updateChart(dataset: SeriesDataType[]) {
 			// new scale
 			xScale.domain(d3.extent(dataset, (d) => d.x));
 			const yMax = d3.max(dataset, (d) => d.y) ?? 0;
@@ -195,7 +193,7 @@
 				.attr('d', lineFn);
 		}
 		return {
-			update({ dataset }) {
+			update({ dataset }: { dataset: SeriesDataType[] }) {
 				updateChart(dataset);
 			},
 			destroy() {
@@ -207,7 +205,7 @@
 
 <div
 	use:drawLineChart={{
-		dataset: dataset.map((d) => ({ x: utcParse(d.x), y: d.y })),
+		dataset: dataset,
 		margin: {
 			top: 20,
 			right: 50,

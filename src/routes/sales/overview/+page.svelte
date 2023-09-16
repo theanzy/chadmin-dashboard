@@ -1,22 +1,23 @@
 <script lang="ts">
 	import LineChart from '$lib/components/LineChart.svelte';
 	import ComboBox from '$lib/components/ComboBox.svelte';
-	import { currencyFormatter, unitFormatter } from '$lib/utils.js';
+	import { currencyFormatter, monthToDate, unitFormatter } from '$lib/utils.js';
 
 	export let data;
 	let overviewType = 'revenue';
 
-	let dataset: { x: string; y: number }[] = [];
+	let dataset: { x: Date; y: number }[] = [];
 	function formatYValue(y: number) {
 		if (overviewType === 'revenue') {
 			return currencyFormatter.format(y);
 		}
 		return `${unitFormatter.format(y)} Units`;
 	}
+
 	$: if (overviewType === 'revenue') {
-		dataset = data.cumulativeSales.map((d) => ({ x: d.month, y: d.totalRevenue }));
+		dataset = data.cumulativeSales.map((d) => ({ x: monthToDate(d.month), y: d.totalRevenue }));
 	} else {
-		dataset = data.cumulativeSales.map((d) => ({ x: d.month, y: d.totalUnits }));
+		dataset = data.cumulativeSales.map((d) => ({ x: monthToDate(d.month), y: d.totalUnits }));
 	}
 </script>
 
