@@ -32,7 +32,7 @@
 	<svelte:fragment slot="sidebarLeft">
 		<Sidebar />
 	</svelte:fragment>
-	<section class="px-4 py-2 flex-1">
+	<section class="px-4 py-2 h-[80vh]">
 		<slot />
 	</section>
 	<svelte:fragment slot="pageFooter">

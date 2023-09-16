@@ -26,28 +26,34 @@
 <h5 class="h6 text-surface-600-300-token mb-5">
 	Monthly sales made in the year {new Date().getUTCFullYear()}
 </h5>
-<ComboBox
-	bind:value={monthlyType}
-	name={'monthlyType'}
-	options={[
-		{
-			label: 'Revenue',
-			value: 'revenue'
-		},
-		{
-			label: 'Units',
-			value: 'unit'
-		}
-	]}
-/>
-<div class="h-[50vh] w-full">
-	<LineChart
-		{dataset}
-		tooltipValueGetter={(d) => {
-			return {
-				x: d.x.toLocaleString('default', { month: 'long' }),
-				y: formatYValue(d.y)
-			};
-		}}
+{#if data.monthlySales.length}
+	<ComboBox
+		bind:value={monthlyType}
+		name={'monthlyType'}
+		options={[
+			{
+				label: 'Revenue',
+				value: 'revenue'
+			},
+			{
+				label: 'Units',
+				value: 'unit'
+			}
+		]}
 	/>
-</div>
+	<div class="h-[50vh] w-full">
+		<LineChart
+			{dataset}
+			tooltipValueGetter={(d) => {
+				return {
+					x: d.x.toLocaleString('default', { month: 'long' }),
+					y: formatYValue(d.y)
+				};
+			}}
+		/>
+	</div>
+{:else}
+	<div class="h-full text-error-500-400-token flex flex-col justify-center">
+		<p class="text-center">Data is not available</p>
+	</div>
+{/if}

@@ -29,26 +29,29 @@ export async function load({ url }) {
 
 	async function getDailySales(start: Date, end: Date) {
 		console.log('sss', start, end);
-
-		const monthlySales = await db
-			.select({
-				date: transactions.createdAt,
-				totalRevenue: sql<number>`sum(${products.price} * ${productsTransactions.quantity})::bigint`,
-				totalUnits: sql<number>`sum(${productsTransactions.quantity})::bigint`
-			})
-			.from(transactions)
-			.innerJoin(productsTransactions, eq(productsTransactions.transactionId, transactions.id))
-			.innerJoin(products, eq(products.id, productsTransactions.productId))
-			.where(and(gte(transactions.createdAt, start), lte(transactions.createdAt, end)))
-			.groupBy(transactions.createdAt)
-			.orderBy(transactions.createdAt);
-		const result = monthlySales.map((sales) => {
-			const date = sales.date;
-			const totalRevenue = parseInt(sales.totalRevenue as unknown as string) / 100;
-			const totalUnits = parseInt(sales.totalUnits as unknown as string);
-			return { date, totalRevenue, totalUnits };
-		});
-		return result;
+		try {
+			const monthlySales = await db
+				.select({
+					date: transactions.createdAt,
+					totalRevenue: sql<number>`sum(${products.price} * ${productsTransactions.quantity})::bigint`,
+					totalUnits: sql<number>`sum(${productsTransactions.quantity})::bigint`
+				})
+				.from(transactions)
+				.innerJoin(productsTransactions, eq(productsTransactions.transactionId, transactions.id))
+				.innerJoin(products, eq(products.id, productsTransactions.productId))
+				.where(and(gte(transactions.createdAt, start), lte(transactions.createdAt, end)))
+				.groupBy(transactions.createdAt)
+				.orderBy(transactions.createdAt);
+			const result = monthlySales.map((sales) => {
+				const date = sales.date;
+				const totalRevenue = parseInt(sales.totalRevenue as unknown as string) / 100;
+				const totalUnits = parseInt(sales.totalUnits as unknown as string);
+				return { date, totalRevenue, totalUnits };
+			});
+			return result;
+		} catch {
+			return [];
+		}
 	}
 	return {
 		dailySales: getDailySales(startDate, endDate)
