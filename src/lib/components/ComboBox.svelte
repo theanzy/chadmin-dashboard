@@ -16,7 +16,7 @@
 </script>
 
 <button
-	class="btn text-sm bg-surface-100-800-token border w-52 justify-between"
+	class="btn text-sm border border-neutral-400 dark:border-neutral-700 w-52 justify-between"
 	use:popup={popupCombobox}
 >
 	<span class="capitalize">{value ?? 'Select'}</span>

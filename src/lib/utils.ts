@@ -18,3 +18,9 @@ export const currencyFormatter = new Intl.NumberFormat('en-US', {
 	style: 'currency',
 	currency: 'USD'
 });
+
+export function getStartOfMonth(date: Date) {
+	const result = new Date(date);
+	result.setUTCDate(1);
+	return result;
+}

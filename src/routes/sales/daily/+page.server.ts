@@ -3,9 +3,33 @@ import { transactions } from '../../../schema/transactions';
 import { and, eq, gte, lte, sql } from 'drizzle-orm';
 import { products } from '../../../schema/products';
 import { productsTransactions } from '../../../schema/product_transaction';
+import { getStartOfMonth } from '$lib/utils';
 
-export async function load() {
+export async function load({ url }) {
+	const startDateStr = url.searchParams.get('startdate');
+	const endDateStr = url.searchParams.get('enddate');
+
+	let startDate = getStartOfMonth(new Date());
+	if (startDateStr) {
+		const parsed = new Date(startDateStr);
+		if (!isNaN(parsed.getTime())) {
+			startDate = parsed;
+		}
+	}
+	console.log('endStr', endDateStr);
+	let endDate = new Date();
+	if (endDateStr) {
+		const parsed = new Date(endDateStr);
+		console.log('parsed', parsed);
+
+		if (!isNaN(parsed.getTime())) {
+			endDate = parsed;
+		}
+	}
+
 	async function getDailySales(start: Date, end: Date) {
+		console.log('sss', start, end);
+
 		const monthlySales = await db
 			.select({
 				date: transactions.createdAt,
@@ -27,6 +51,6 @@ export async function load() {
 		return result;
 	}
 	return {
-		dailySales: getDailySales(new Date(Date.UTC(2023, 8, 1)), new Date())
+		dailySales: getDailySales(startDate, endDate)
 	};
 }
