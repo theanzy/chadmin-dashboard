@@ -1,6 +1,7 @@
 <script lang="ts">
 	import * as d3 from 'd3';
 	type DataType = { x: string; y: number };
+	type SeriesDataType = { x: Date; y: number };
 	type Margin = {
 		top: number;
 		right: number;
@@ -8,23 +9,45 @@
 		left: number;
 	};
 
-	type TooltipValueGetter = (d: DataType) => { x: string; y: string };
+	type TooltipValueGetter = (d: SeriesDataType) => { x: string; y: string };
 
 	export let dataset: Array<DataType> = [];
-	export let formatYValue: (y: number) => string;
+	export let tooltipValueGetter: TooltipValueGetter;
+
+	const utcParse = d3.utcParse('%B');
+	const bisect = d3.bisector((d: any) => d.x).left;
 
 	function drawLineChart(
 		vizContainer: HTMLDivElement,
 
 		{
 			margin,
-			tooltipValueGetter
+			tooltipValueGetter,
+			dataset
 		}: {
-			dataset: Array<DataType>;
+			dataset: Array<SeriesDataType>;
 			margin: Margin;
 			tooltipValueGetter?: TooltipValueGetter;
 		}
 	) {
+		// Define the x and y domains
+		const xScale = d3.scaleTime().domain(d3.extent(dataset, (d) => d.x));
+		const yMax = d3.max(dataset, (d) => d.y) ?? 0;
+		const yScale = d3.scaleLinear().domain([0, yMax]);
+
+		// Create the line generator
+		const lineFn = d3
+			.line()
+			.x((d) => xScale(d.x))
+			.y((d) => yScale(d.y));
+
+		let line: d3.Selection<SVGPathElement, unknown, null, undefined>;
+		let xAxis: d3.Selection<SVGGElement, unknown, null, undefined>;
+		let yAxis: d3.Selection<SVGGElement, unknown, null, undefined>;
+		let circle: d3.Selection<SVGCircleElement, unknown, null, undefined>;
+		let listeningRect: d3.Selection<SVGRectElement, unknown, null, undefined>;
+		let tooltip: d3.Selection<HTMLDivElement, unknown, null, undefined>;
+
 		redraw();
 		window.addEventListener('resize', redraw);
 
@@ -40,18 +63,11 @@
 
 			// create tooltip div
 
-			const tooltip = d3.select(vizContainer).append('div').attr('class', 'linechart_tooltip');
-
-			// Define the x and y domains
-			const xScale = d3.scalePoint().domain(dataset.map((d) => d.x));
-			const yMax = d3.max(dataset, (d) => d.y) ?? 0;
-			const yScale = d3.scaleLinear().domain([0, yMax]);
-
-			// Create the line generator
-			const line = d3
-				.line<DataType>()
-				.x((d) => xScale(d.x))
-				.y((d) => yScale(d.y));
+			tooltip = d3
+				.select(vizContainer)
+				.append('div')
+				.attr('class', 'linechart_tooltip')
+				.style('display', 'none');
 
 			// Set up the x and y scales
 			xScale.range([0, width]);
@@ -61,30 +77,29 @@
 				.select(vizContainer)
 				.append('svg')
 				.attr('width', width + margin.left + margin.right)
-				.attr('height', height + margin.top + margin.bottom)
-				.append('g')
-				.attr('transform', `translate(${margin.left},${margin.top})`);
+				.attr('height', height + margin.top + margin.bottom);
+			const vizGraph = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
 
 			// Add the x-axis
-			svg
+			xAxis = vizGraph
 				.append('g')
 				.attr('transform', `translate(0,${height})`)
-				.call(d3.axisBottom(xScale).ticks(dataset.length));
+				.call(d3.axisBottom(xScale));
 
 			// Add the y-axis
-			svg.append('g').call(d3.axisLeft(yScale).tickFormat(d3.format('~s')));
+			yAxis = vizGraph.append('g').call(d3.axisLeft(yScale).tickFormat(d3.format('~s')));
 
 			// Add the line path to the SVG element
-			svg
+			line = vizGraph
 				.append('path')
 				.datum(dataset)
 				.attr('fill', 'none')
 				.attr('stroke', '#7700ee')
 				.attr('stroke-width', 1)
-				.attr('d', line);
+				.attr('d', lineFn);
 
 			// Add a circle element
-			const circle = svg
+			circle = vizGraph
 				.append('circle')
 				.attr('r', 0)
 				.attr('fill', '#333')
@@ -93,72 +108,95 @@
 				.style('pointer-events', 'none');
 			// create a listening rectangle
 
-			const listeningRect = svg
+			listeningRect = vizGraph
 				.append('rect')
 				.attr('width', width)
 				.attr('fill', 'transparent')
 				.attr('height', height);
 
 			// create the mouse move function
-			listeningRect.on('mousemove', function (event) {
-				const [xCoord] = d3.pointer(event, this);
-				const xStep = xScale.step();
-				const i = Math.floor(xCoord / xStep);
-				const distanceLeft = xCoord - i * xStep;
-				const distanceRight = (i + 1) * xStep - xCoord;
-				const isTooFar = distanceLeft > xStep * 0.05 && distanceRight > xStep * 0.05;
-				if (isTooFar) {
-					circle.transition().duration(50).attr('r', 0);
-					tooltip.style('display', 'none');
-					tooltip.style('left', `0`).style('top', `0`);
-					return;
-				}
-				const iTarget = distanceLeft < distanceRight ? i : i + 1;
-				const d = dataset[iTarget];
-				// Update the circle position
-				const xPos = xScale(d.x) || 0;
-				const yPos = yScale(d.y);
+			listeningRect.on('mousemove', (e) => onMouseMove(e, dataset));
+			// listening rectangle mouse leave function
+			listeningRect.on('mouseleave', onMouseLeave);
+		}
 
-				circle.attr('cx', xPos).attr('cy', yPos);
+		function onMouseLeave() {
+			circle.transition().duration(50).attr('r', 0);
+			tooltip.style('display', 'none');
+		}
 
-				// Add transition for the circle radius
-				circle.transition().duration(50).attr('r', 5);
+		function onMouseMove(event: MouseEvent, dataset: Array<SeriesDataType>) {
+			const [xCoord] = d3.pointer(event, this);
+			const x0 = xScale.invert(xCoord);
+			const i = bisect(dataset, x0, 1);
+			const d0 = dataset[i - 1];
+			const d1 = dataset[i];
+			const dTarget =
+				x0.getUTCDate() - d0.x.getUTCDate() > d1.x.getUTCDate() - x0.getUTCDate() ? d1 : d0;
+			const xPos = xScale(dTarget.x);
+			const yPos = yScale(dTarget.y);
 
-				// add in  our tooltip
-				let tooltipXPos = xPos + 50;
-				if (tooltipXPos > width * 0.95) {
-					tooltipXPos -= 100;
-				}
+			circle.attr('cx', xPos).attr('cy', yPos);
 
-				let tooltipYPos = yPos + 30;
-				if (tooltipYPos > height * 0.95) {
-					tooltipYPos -= 70;
-				}
-				let tooltipXDisplay = d.x;
-				let tooltipYDisplay: string | number = d.y;
-				if (tooltipValueGetter) {
-					const dataDisplay = tooltipValueGetter(d);
-					tooltipXDisplay = dataDisplay.x;
-					tooltipYDisplay = dataDisplay.y;
-				}
-				tooltip
-					.style('left', `${tooltipXPos}px`)
-					.style('top', `${tooltipYPos}px`)
-					.style('display', 'block').html(`<div>
+			// Add transition for the circle radius
+			circle.transition().duration(50).attr('r', 5);
+
+			// tooltip content
+			let tooltipXDisplay = dTarget.x.toUTCString();
+			let tooltipYDisplay: string | number = dTarget.y;
+
+			if (tooltipValueGetter) {
+				const dataDisplay = tooltipValueGetter(dTarget);
+				tooltipXDisplay = dataDisplay.x;
+				tooltipYDisplay = dataDisplay.y;
+			}
+
+			// tooltip position
+			tooltip.style('display', 'block').html(`<div>
 						<strong>${tooltipXDisplay}</strong>
 						<p>${tooltipYDisplay}</p>
 					</div>`);
 
-				// listening rectangle mouse leave function
-				listeningRect.on('mouseleave', function () {
-					circle.transition().duration(50).attr('r', 0);
-					tooltip.style('display', 'none');
-				});
-			});
+			// add in  our tooltip
+			const tooltipRect = tooltip.node()!.getBoundingClientRect();
+			let tooltipXPos = xPos + 45;
+			let tooltipYPos = yPos + 30;
+			const { width: containerWidth, height: containerHeight } =
+				vizContainer.getBoundingClientRect();
+			const width = containerWidth - margin.left - margin.right;
+			const height = containerHeight - margin.top - margin.bottom;
+			if (tooltipXPos + tooltipRect.width > width) {
+				tooltipXPos -= tooltipRect.width + 5;
+			}
+			if (tooltipYPos + tooltipRect.height > height) {
+				tooltipYPos -= tooltipRect.height + 15;
+			}
+
+			tooltip.style('left', `${tooltipXPos}px`).style('top', `${tooltipYPos}px`);
+		}
+		function updateChart(dataset) {
+			// new scale
+			xScale.domain(d3.extent(dataset, (d) => d.x));
+			const yMax = d3.max(dataset, (d) => d.y) ?? 0;
+			yScale.domain([0, yMax]);
+
+			// transform the elements
+			xAxis.call(d3.axisBottom(xScale));
+			yAxis.call(d3.axisLeft(yScale).tickFormat(d3.format('~s')));
+			listeningRect.on('mousemove', (e) => onMouseMove(e, dataset));
+			listeningRect.on('mouseleave', onMouseLeave);
+			line
+				.datum(dataset)
+				.transition()
+				.duration(1000)
+				.attr('fill', 'none')
+				.attr('stroke', '#7700ee')
+				.attr('stroke-width', 1)
+				.attr('d', lineFn);
 		}
 		return {
-			update(dataset: any) {
-				redraw();
+			update({ dataset }) {
+				updateChart(dataset);
 			},
 			destroy() {
 				window.removeEventListener('resize', redraw);
@@ -169,7 +207,7 @@
 
 <div
 	use:drawLineChart={{
-		dataset: dataset,
+		dataset: dataset.map((d) => ({ x: utcParse(d.x), y: d.y })),
 		margin: {
 			top: 20,
 			right: 50,
@@ -177,9 +215,10 @@
 			left: 40
 		},
 		tooltipValueGetter: (d) => {
+			const v = tooltipValueGetter(d);
 			return {
-				x: d.x,
-				y: formatYValue(d.y)
+				x: v.x,
+				y: v.y
 			};
 		}
 	}}

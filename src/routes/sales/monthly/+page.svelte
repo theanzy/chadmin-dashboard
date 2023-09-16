@@ -40,5 +40,13 @@
 	]}
 />
 <div class="h-[50vh] w-full">
-	<LineChart {dataset} {formatYValue} />
+	<LineChart
+		{dataset}
+		tooltipValueGetter={(d) => {
+			return {
+				x: d.x.toLocaleString('default', { month: 'long' }),
+				y: formatYValue(d.y)
+			};
+		}}
+	/>
 </div>
