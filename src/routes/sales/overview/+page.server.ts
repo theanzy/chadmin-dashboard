@@ -17,7 +17,7 @@ import { getMonthName } from '$lib/utils';
 // order by transaction_year asc;
 
 export async function load() {
-	async function getCumulativeSales(yaer: number) {
+	async function getCumulativeSales(year: number) {
 		try {
 			const transactionMonth = sql<number>`date_part('month', ${transactions.createdAt})`;
 			const monthlySales = await db
@@ -29,7 +29,7 @@ export async function load() {
 				.from(transactions)
 				.innerJoin(productsTransactions, eq(productsTransactions.transactionId, transactions.id))
 				.innerJoin(products, eq(products.id, productsTransactions.productId))
-				.where(eq(sql<number>`date_part('year', ${transactions.createdAt})`, yaer))
+				.where(eq(sql<number>`date_part('year', ${transactions.createdAt})`, year))
 				.groupBy(transactionMonth)
 				.orderBy(transactionMonth);
 			const result = monthlySales.reduce((result, sales, i) => {

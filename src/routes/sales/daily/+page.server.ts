@@ -16,12 +16,9 @@ export async function load({ url }) {
 			startDate = parsed;
 		}
 	}
-	console.log('endStr', endDateStr);
 	let endDate = new Date();
 	if (endDateStr) {
 		const parsed = new Date(endDateStr);
-		console.log('parsed', parsed);
-
 		if (!isNaN(parsed.getTime())) {
 			endDate = parsed;
 		}
