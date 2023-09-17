@@ -38,7 +38,7 @@
 			href: '/customers'
 		},
 		{
-			label: 'Tranasctions',
+			label: 'Transaction',
 			icon: Transaction,
 			href: '/transactions'
 		},
