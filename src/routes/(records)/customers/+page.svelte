@@ -52,13 +52,34 @@
 		getPaginationRowModel: getPaginationRowModel()
 	});
 
-	const rerender = () => {
-		options.update((options) => ({
-			...options,
-			data: data.customers.data
-		}));
-	};
 	const table = createSvelteTable(options);
+
+	function getPagination(pageIndex: number, lastIndex: number) {
+		const middleSize = 3;
+		let result = [];
+		result.push(1);
+
+		let startOffset = pageIndex;
+		if (pageIndex + middleSize >= lastIndex) {
+			startOffset = lastIndex - middleSize;
+		}
+
+		if (pageIndex < middleSize) {
+			startOffset = 2;
+		}
+
+		if (pageIndex >= middleSize) {
+			result.push('...');
+		}
+		for (let i = startOffset; i < middleSize + startOffset; i++) {
+			result.push(i);
+		}
+		if (pageIndex + middleSize < lastIndex) {
+			result.push('...');
+		}
+		result.push(lastIndex);
+		return result;
+	}
 </script>
 
 <h2 class="h3 font-bold">Customers</h2>
@@ -97,42 +118,70 @@
 				</tbody>
 			</table>
 		</div>
-
-		<button
-			class="btn btn-sm variant-outline-secondary"
-			disabled={$table.getState().pagination.pageIndex === 0}
-			on:click={() => {
-				$table.setPageIndex((i) => i - 1);
-			}}>Prev</button
+		<div
+			class="flex flex-row w-max rounded border border-surface-300 dark:border-surface-600 mt-2 [&>*]:border-l [&>*]:border-surface-300 dark:[&>*]:border-surface-600 ml-auto"
 		>
-		{#each Array(5)
-			.fill(0)
-			.map((_, i) => i + 1) as pageNumber}
 			<button
-				class="border-y border-neutral-300 dark:border-neutral-600 text-sm w-8 h-8 first:border-l first:rounded-tl first:rounded-bl last:rounded-tr last:rounded-br {pageNumber ===
-				$table.getState().pagination.pageIndex + 1
-					? 'text-primary-500'
-					: ''}"
-				disabled={$table.getState().pagination.pageIndex === data.customers.count - 2}
-				on:click={() => {
-					$table.setPageIndex(pageNumber - 1);
-				}}>{pageNumber}</button
+				aria-label="previous page"
+				class="w-9 h-9 grid place-items-center disabled:text-surface-300 dark:disabled:text-surface-400 hover:text-primary-400 first:border-l-0"
+				disabled={$table.getState().pagination.pageIndex === 0}
+				on:click={() => $table.setPageIndex((old) => old - 1)}
 			>
-		{/each}
-		<button
-			class="btn btn-sm variant-outline-secondary"
-			disabled={$table.getState().pagination.pageIndex === data.customers.count - 2}
-			on:click={() => {
-				$table.setPageIndex((i) => i + 1);
-			}}>Next</button
-		>
-		<input
-			class="input"
-			type="number"
-			on:change={(e) => {
-				$table.setPageIndex(e.currentTarget.valueAsNumber);
-			}}
-		/>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="15"
+					height="15"
+					viewBox="0 0 15 15"
+					class="w-3 h-3"><path fill="currentColor" d="M3 7.5L11 0v15L3 7.5Z" /></svg
+				>
+			</button>
+			{#each getPagination($table.getState().pagination.pageIndex, Math.floor(data.customers.count / 10)) as pageNumber}
+				{#if typeof pageNumber === 'number'}
+					<button
+						class="text-sm w-9 h-9 {pageNumber === $table.getState().pagination.pageIndex + 1
+							? 'text-primary-500'
+							: 'hover:text-primary-400'}"
+						on:click={() => {
+							$table.setPageIndex(+pageNumber - 1);
+						}}>{pageNumber}</button
+					>
+				{:else}
+					<span
+						class="text-sm w-9 h-9 grid place-items-center text-surface-300 dark:text-surface-400"
+						><svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="24"
+							height="24"
+							viewBox="0 0 24 24"
+							class="w-4 h-4"
+							><path
+								fill="none"
+								stroke="currentColor"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M4 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0m7 0a1 1 0 1 0 2 0a1 1 0 1 0-2 0m7 0a1 1 0 1 0 2 0a1 1 0 1 0-2 0"
+							/></svg
+						>
+					</span>
+				{/if}
+			{/each}
+			<button
+				aria-label="previous page"
+				class="w-9 h-9 grid place-items-center disabled:text-surface-300 dark:disabled:text-surface-400 hover:text-primary-400"
+				disabled={$table.getState().pagination.pageIndex ===
+					Math.floor(data.customers.count / 10) - 1}
+				on:click={() => $table.setPageIndex((old) => old + 1)}
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="15"
+					height="15"
+					viewBox="0 0 15 15"
+					class="w-3 h-3"><path fill="currentColor" d="M12 7.5L4 0v15l8-7.5Z" /></svg
+				>
+			</button>
+		</div>
 	</div>
 {:else}
 	<div class="h-full text-error-500-400-token flex flex-col justify-center">
