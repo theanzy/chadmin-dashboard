@@ -1,16 +1,13 @@
 <script lang="ts">
 	import { writable } from 'svelte/store';
-	import {
-		createSvelteTable,
-		flexRender,
-		getCoreRowModel,
-		getPaginationRowModel
-	} from '@tanstack/svelte-table';
+	import { createSvelteTable, flexRender, getCoreRowModel } from '@tanstack/svelte-table';
 	import type { ColumnDef, TableOptions } from '@tanstack/table-core/src/types';
 	import { currencyFormatter } from '$lib/utils.js';
+	import { page } from '$app/stores';
+	import { goto } from '$app/navigation';
 
 	export let data;
-	console.log(data.customers);
+
 	type ColumnType = (typeof data.customers.data)[number];
 	const defaultColumns: ColumnDef<ColumnType>[] = [
 		{
@@ -23,7 +20,8 @@
 			accessorFn: (row) => row.email,
 			id: 'email',
 			cell: (info) => info.getValue(),
-			header: () => 'Email'
+			header: () => 'Email',
+			size: 200
 		},
 		{
 			accessorFn: (row) => row.city,
@@ -45,14 +43,26 @@
 		}
 	];
 
-	const options = writable<TableOptions<ColumnType>>({
+	const options = writable<TableOptions<any>>({
 		data: data.customers.data,
 		columns: defaultColumns,
-		getCoreRowModel: getCoreRowModel(),
-		getPaginationRowModel: getPaginationRowModel()
+		getCoreRowModel: getCoreRowModel()
 	});
 
+	$: options.update((old) => ({ ...old, data: data.customers.data }));
+
 	const table = createSvelteTable(options);
+
+	$: queryPageNumber =
+		$page.url.searchParams.get('page') !== null ? parseInt($page.url.searchParams.get('page')!) : 1;
+	$: queryPageSize =
+		$page.url.searchParams.get('pageSize') !== null
+			? parseInt($page.url.searchParams.get('pageSize')!)
+			: 10;
+
+	$: {
+		$table.setPageIndex(queryPageNumber - 1);
+	}
 
 	function getPagination(pageIndex: number, pageSize: number) {
 		const middleSize = 3;
@@ -125,7 +135,12 @@
 				aria-label="previous page"
 				class="w-9 h-9 grid place-items-center disabled:text-surface-300 dark:disabled:text-surface-400 hover:text-primary-400 first:border-l-0"
 				disabled={$table.getState().pagination.pageIndex === 0}
-				on:click={() => $table.setPageIndex((old) => old - 1)}
+				on:click={() => {
+					const query = new URLSearchParams($page.url.searchParams.toString());
+					query.set('page', (queryPageNumber - 1).toString());
+					query.set('pageSize', queryPageSize.toString());
+					goto(`?${query.toString()}`);
+				}}
 			>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
@@ -142,7 +157,10 @@
 							? 'text-primary-500'
 							: 'hover:text-primary-400'}"
 						on:click={() => {
-							$table.setPageIndex(+pageNumber - 1);
+							const query = new URLSearchParams($page.url.searchParams.toString());
+							query.set('page', (+pageNumber).toString());
+							query.set('pageSize', queryPageSize.toString());
+							goto(`?${query.toString()}`);
 						}}>{pageNumber}</button
 					>
 				{:else}
@@ -171,7 +189,12 @@
 				class="w-9 h-9 grid place-items-center disabled:text-surface-300 dark:disabled:text-surface-400 hover:text-primary-400"
 				disabled={$table.getState().pagination.pageIndex ===
 					Math.ceil(data.customers.count / 10) - 1}
-				on:click={() => $table.setPageIndex((old) => old + 1)}
+				on:click={() => {
+					const query = new URLSearchParams($page.url.searchParams.toString());
+					query.set('page', (queryPageNumber + 1).toString());
+					query.set('pageSize', queryPageSize.toString());
+					goto(`?${query.toString()}`);
+				}}
 			>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"

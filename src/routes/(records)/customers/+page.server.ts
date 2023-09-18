@@ -31,9 +31,10 @@ export function load({ url }) {
 					total: sql<number>`count(*)::integer`
 				})
 				.from(sql`${query} as cte`);
-
-			const data = await query;
-
+			const data = await query
+				.offset(page * pageSize)
+				.limit(pageSize)
+				.orderBy(users.id);
 			const result = data.map((d) => {
 				const totalSpent = parseInt(d.totalSpent as unknown as string) / 100;
 				return {
@@ -41,11 +42,13 @@ export function load({ url }) {
 					totalSpent
 				};
 			});
+			console.log(data);
 			return {
 				count: count[0].total,
 				data: result
 			};
 		} catch (error) {
+			console.log('error', error);
 			return {
 				count: 0,
 				data: []
