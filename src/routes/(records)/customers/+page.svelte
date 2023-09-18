@@ -54,14 +54,14 @@
 
 	const table = createSvelteTable(options);
 
-	function getPagination(pageIndex: number, lastIndex: number) {
+	function getPagination(pageIndex: number, pageSize: number) {
 		const middleSize = 3;
 		let result = [];
 		result.push(1);
 
 		let startOffset = pageIndex;
-		if (pageIndex + middleSize >= lastIndex) {
-			startOffset = lastIndex - middleSize;
+		if (pageIndex + middleSize >= pageSize) {
+			startOffset = pageSize - middleSize;
 		}
 
 		if (pageIndex < middleSize) {
@@ -74,10 +74,10 @@
 		for (let i = startOffset; i < middleSize + startOffset; i++) {
 			result.push(i);
 		}
-		if (pageIndex + middleSize < lastIndex) {
+		if (pageIndex + middleSize < pageSize) {
 			result.push('...');
 		}
-		result.push(lastIndex);
+		result.push(pageSize);
 		return result;
 	}
 </script>
@@ -88,7 +88,7 @@
 	<div class="h-[80vh]">
 		<div class="table-container">
 			<table class="table table-hover">
-				<thead>
+				<thead class="text-sm">
 					{#each $table.getHeaderGroups() as headerGroup}
 						<tr>
 							{#each headerGroup.headers as header}
@@ -135,7 +135,7 @@
 					class="w-3 h-3"><path fill="currentColor" d="M3 7.5L11 0v15L3 7.5Z" /></svg
 				>
 			</button>
-			{#each getPagination($table.getState().pagination.pageIndex, Math.floor(data.customers.count / 10)) as pageNumber}
+			{#each getPagination($table.getState().pagination.pageIndex, Math.ceil(data.customers.count / 10)) as pageNumber}
 				{#if typeof pageNumber === 'number'}
 					<button
 						class="text-sm w-9 h-9 {pageNumber === $table.getState().pagination.pageIndex + 1
@@ -170,7 +170,7 @@
 				aria-label="previous page"
 				class="w-9 h-9 grid place-items-center disabled:text-surface-300 dark:disabled:text-surface-400 hover:text-primary-400"
 				disabled={$table.getState().pagination.pageIndex ===
-					Math.floor(data.customers.count / 10) - 1}
+					Math.ceil(data.customers.count / 10) - 1}
 				on:click={() => $table.setPageIndex((old) => old + 1)}
 			>
 				<svg
