@@ -24,3 +24,13 @@ export function getStartOfMonth(date: Date) {
 	result.setUTCDate(1);
 	return result;
 }
+
+export function getNullableVal<T>(val: string | null, defaultVal: T, updater?: (v: string) => T) {
+	if (val !== null) {
+		if (updater) {
+			return updater(val);
+		}
+		return val as T;
+	}
+	return defaultVal;
+}

@@ -5,8 +5,9 @@
 
 	import { createSvelteTable, flexRender, getCoreRowModel } from '@tanstack/svelte-table';
 	import type { ColumnDef, TableOptions } from '@tanstack/table-core/src/types';
-	import { currencyFormatter } from '$lib/utils.js';
+	import { currencyFormatter, getNullableVal } from '$lib/utils.js';
 	import SearchIcon from '$lib/components/icons/SearchIcon.svelte';
+	import { getPagination } from '$lib/paginate.js';
 
 	export let data;
 
@@ -55,46 +56,12 @@
 
 	const table = createSvelteTable(options);
 
-	function getNullableVal<T>(val: string | null, defaultVal: T, updater?: (v: string) => T) {
-		if (val !== null) {
-			if (updater) {
-				return updater(val);
-			}
-			return val as T;
-		}
-		return defaultVal;
-	}
-
 	$: queryPageNumber = getNullableVal($page.url.searchParams.get('page'), 1, (x) => parseInt(x));
 	$: queryPageSize = getNullableVal($page.url.searchParams.get('pageSize'), 10, (x) => parseInt(x));
 	$: queryCustomerName = getNullableVal($page.url.searchParams.get('name'), '');
 
 	$: {
 		$table.setPageIndex(queryPageNumber - 1);
-	}
-
-	function getPagination(pageIndex: number, maxPages: number) {
-		const middleSize = 3;
-		const result = [];
-		let offset = Math.floor(middleSize / 2);
-		if (pageIndex === 0) {
-			offset = middleSize - 1;
-		} else if (pageIndex === maxPages - 1) {
-			offset = middleSize - 1;
-		}
-		for (let i = 1; i <= maxPages; i++) {
-			if (
-				i == 1 ||
-				(pageIndex - offset < i && pageIndex + offset + 1 >= i) ||
-				i == pageIndex ||
-				i == maxPages
-			) {
-				result.push(i);
-			} else if (i == pageIndex - offset || i == pageIndex + (offset + 2)) {
-				result.push('...');
-			}
-		}
-		return result;
 	}
 </script>
 
