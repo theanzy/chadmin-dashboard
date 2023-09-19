@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { writable } from 'svelte/store';
+	import { page } from '$app/stores';
+	import { goto } from '$app/navigation';
+
 	import { createSvelteTable, flexRender, getCoreRowModel } from '@tanstack/svelte-table';
 	import type { ColumnDef, TableOptions } from '@tanstack/table-core/src/types';
 	import { currencyFormatter } from '$lib/utils.js';
-	import { page } from '$app/stores';
-	import { goto } from '$app/navigation';
+	import SearchIcon from '$lib/components/icons/SearchIcon.svelte';
 
 	export let data;
 
@@ -53,41 +55,45 @@
 
 	const table = createSvelteTable(options);
 
-	$: queryPageNumber =
-		$page.url.searchParams.get('page') !== null ? parseInt($page.url.searchParams.get('page')!) : 1;
-	$: queryPageSize =
-		$page.url.searchParams.get('pageSize') !== null
-			? parseInt($page.url.searchParams.get('pageSize')!)
-			: 10;
+	function getNullableVal<T>(val: string | null, defaultVal: T, updater?: (v: string) => T) {
+		if (val !== null) {
+			if (updater) {
+				return updater(val);
+			}
+			return val as T;
+		}
+		return defaultVal;
+	}
+
+	$: queryPageNumber = getNullableVal($page.url.searchParams.get('page'), 1, (x) => parseInt(x));
+	$: queryPageSize = getNullableVal($page.url.searchParams.get('pageSize'), 10, (x) => parseInt(x));
+	$: queryCustomerName = getNullableVal($page.url.searchParams.get('name'), '');
 
 	$: {
 		$table.setPageIndex(queryPageNumber - 1);
 	}
 
-	function getPagination(pageIndex: number, pageSize: number) {
+	function getPagination(pageIndex: number, maxPages: number) {
 		const middleSize = 3;
-		let result = [];
-		result.push(1);
-
-		let startOffset = pageIndex;
-		if (pageIndex + middleSize >= pageSize) {
-			startOffset = pageSize - middleSize;
+		const result = [];
+		let offset = Math.floor(middleSize / 2);
+		if (pageIndex === 0) {
+			offset = middleSize - 1;
+		} else if (pageIndex === maxPages - 1) {
+			offset = middleSize - 1;
 		}
-
-		if (pageIndex < middleSize) {
-			startOffset = 2;
+		for (let i = 1; i <= maxPages; i++) {
+			if (
+				i == 1 ||
+				(pageIndex - offset < i && pageIndex + offset + 1 >= i) ||
+				i == pageIndex ||
+				i == maxPages
+			) {
+				result.push(i);
+			} else if (i == pageIndex - offset || i == pageIndex + (offset + 2)) {
+				result.push('...');
+			}
 		}
-
-		if (pageIndex >= middleSize) {
-			result.push('...');
-		}
-		for (let i = startOffset; i < middleSize + startOffset; i++) {
-			result.push(i);
-		}
-		if (pageIndex + middleSize < pageSize) {
-			result.push('...');
-		}
-		result.push(pageSize);
 		return result;
 	}
 </script>
@@ -95,7 +101,18 @@
 <h2 class="h3 font-bold">Customers</h2>
 <h5 class="h6 text-surface-600-300-token mb-5">Records on customers's spending</h5>
 {#if data.customers.data.length}
-	<div class="h-[80vh]">
+	<div class="mb-3">
+		<form class="flex flex-row gap-1 mb-3 items-stretch" method="get">
+			<!-- <input type="hidden" name="page" value={queryPageNumber} />
+			<input type="hidden" name="pageSize" value={queryPageSize} /> -->
+			<input class="input px-2" name="name" value={queryCustomerName} />
+			<button
+				type="submit"
+				class="btn btn-sm variant-filled-tertiary grid place-items-center w-9 h-9"
+			>
+				<SearchIcon class="w-5 h-5" />
+			</button>
+		</form>
 		<div class="table-container">
 			<table class="table table-hover">
 				<thead class="text-sm">
@@ -208,6 +225,6 @@
 	</div>
 {:else}
 	<div class="h-full text-error-500-400-token flex flex-col justify-center">
-		<p class="text-center">Data is not available</p>
+		<p class="text-center">No customers found</p>
 	</div>
 {/if}

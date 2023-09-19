@@ -1,5 +1,5 @@
 import { db } from '$lib/db/index.js';
-import { eq, sql } from 'drizzle-orm';
+import { eq, ilike, sql } from 'drizzle-orm';
 import { transactions } from '../../../schema/transactions.js';
 import { users } from '../../../schema/users.js';
 import { productsTransactions } from '../../../schema/product_transaction.js';
@@ -10,9 +10,12 @@ export function load({ url }) {
 	const pageSizeStr = url.searchParams.get('pageSize');
 	const page = pageStr ? parseInt(pageStr) : 1;
 	const pageSize = pageSizeStr ? parseInt(pageSizeStr) : 10;
+
+	const customerNameStr = url.searchParams.get('name');
+
 	async function getCustomer(page: number, pageSize: number) {
 		try {
-			const query = db
+			let query = db
 				.select({
 					id: users.id,
 					email: users.email,
@@ -26,6 +29,10 @@ export function load({ url }) {
 				.innerJoin(productsTransactions, eq(productsTransactions.transactionId, transactions.id))
 				.innerJoin(products, eq(products.id, productsTransactions.productId))
 				.groupBy(users.id);
+			if (customerNameStr?.length) {
+				console.log(customerNameStr, 'ss');
+				query = query.where(ilike(users.name, `%${customerNameStr.toLocaleLowerCase()}%`));
+			}
 			const count = await db
 				.select({
 					total: sql<number>`count(*)::integer`
@@ -42,7 +49,7 @@ export function load({ url }) {
 					totalSpent
 				};
 			});
-			console.log(data);
+			console.log(data, count);
 			return {
 				count: count[0].total,
 				data: result
