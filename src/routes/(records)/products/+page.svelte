@@ -38,7 +38,7 @@
 	</form>
 	<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
 		{#each data.products.data as product (product.id)}
-			<div class="card flex flex-col">
+			<div class="card flex flex-col py-2">
 				<header class="card-header pt-3 pb-1">
 					<h6 class="h6 text-sm lg:text-base font-semibold text-ellipsis line-clamp-2">
 						{product.name}
@@ -52,9 +52,6 @@
 					<p>Yearly Sales: {currencyFormatter.format(product.yearlyRevenue)}</p>
 					<p>Yearly Units Sold: {unitFormatter.format(product.yearlyUnitsSold)}</p>
 				</section>
-				<footer class="card-footer py-2 px-3 flex">
-					<a href="products/{product.id}" class="btn variant-filled-primary btn-sm w-full">View</a>
-				</footer>
 			</div>
 		{/each}
 	</div>
