@@ -11,7 +11,7 @@
 
 	export let data;
 
-	type ColumnType = (typeof data.customers.data)[number];
+	type ColumnType = (typeof data.streamed.customers.data)[number];
 	const defaultColumns: ColumnDef<ColumnType>[] = [
 		{
 			accessorFn: (row) => row.name,
@@ -47,12 +47,17 @@
 	];
 
 	const options = writable<TableOptions<any>>({
-		data: data.customers.data,
+		data: [],
 		columns: defaultColumns,
 		getCoreRowModel: getCoreRowModel()
 	});
 
-	$: options.update((old) => ({ ...old, data: data.customers.data }));
+	let totalCount = 0;
+
+	$: data.streamed.customers.then((res) => {
+		options.update((old) => ({ ...old, data: res.data }));
+		totalCount = res.count;
+	});
 
 	const table = createSvelteTable(options);
 
@@ -67,131 +72,219 @@
 
 <h2 class="h3 font-bold">Customers</h2>
 <h5 class="h6 text-surface-600-300-token mb-5">Records on customers's spending</h5>
-{#if data.customers.data.length}
-	<div class="mb-3">
-		<form class="flex flex-row gap-1 mb-3 items-stretch" method="get">
-			<!-- <input type="hidden" name="page" value={queryPageNumber} />
+<form class="flex flex-row gap-1 mb-3 items-stretch" method="get">
+	<!-- <input type="hidden" name="page" value={queryPageNumber} />
 			<input type="hidden" name="pageSize" value={queryPageSize} /> -->
-			<input class="input px-2" name="name" value={queryCustomerName} />
-			<button
-				type="submit"
-				class="btn btn-sm variant-filled-tertiary grid place-items-center w-9 h-9"
-			>
-				<SearchIcon class="w-5 h-5" />
-			</button>
-		</form>
-		<div class="table-container">
-			<table class="table table-hover">
-				<thead class="text-sm">
-					{#each $table.getHeaderGroups() as headerGroup}
-						<tr>
-							{#each headerGroup.headers as header}
-								<th>
-									{#if !header.isPlaceholder}
+	<input class="input px-2" name="name" value={queryCustomerName} />
+	<button type="submit" class="btn btn-sm variant-filled-tertiary grid place-items-center w-9 h-9">
+		<SearchIcon class="w-5 h-5" />
+	</button>
+</form>
+{#await data.streamed.customers}
+	<svg
+		xmlns="http://www.w3.org/2000/svg"
+		width="24"
+		height="24"
+		viewBox="0 0 24 24"
+		class="w-10 h-10 text-primary-500 mx-auto my-8"
+		><circle cx="12" cy="2" r="0" fill="currentColor"
+			><animate
+				attributeName="r"
+				begin="0"
+				calcMode="spline"
+				dur="1s"
+				keySplines="0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8"
+				repeatCount="indefinite"
+				values="0;2;0;0"
+			/></circle
+		><circle cx="12" cy="2" r="0" fill="currentColor" transform="rotate(45 12 12)"
+			><animate
+				attributeName="r"
+				begin="0.125s"
+				calcMode="spline"
+				dur="1s"
+				keySplines="0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8"
+				repeatCount="indefinite"
+				values="0;2;0;0"
+			/></circle
+		><circle cx="12" cy="2" r="0" fill="currentColor" transform="rotate(90 12 12)"
+			><animate
+				attributeName="r"
+				begin="0.25s"
+				calcMode="spline"
+				dur="1s"
+				keySplines="0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8"
+				repeatCount="indefinite"
+				values="0;2;0;0"
+			/></circle
+		><circle cx="12" cy="2" r="0" fill="currentColor" transform="rotate(135 12 12)"
+			><animate
+				attributeName="r"
+				begin="0.375s"
+				calcMode="spline"
+				dur="1s"
+				keySplines="0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8"
+				repeatCount="indefinite"
+				values="0;2;0;0"
+			/></circle
+		><circle cx="12" cy="2" r="0" fill="currentColor" transform="rotate(180 12 12)"
+			><animate
+				attributeName="r"
+				begin="0.5s"
+				calcMode="spline"
+				dur="1s"
+				keySplines="0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8"
+				repeatCount="indefinite"
+				values="0;2;0;0"
+			/></circle
+		><circle cx="12" cy="2" r="0" fill="currentColor" transform="rotate(225 12 12)"
+			><animate
+				attributeName="r"
+				begin="0.625s"
+				calcMode="spline"
+				dur="1s"
+				keySplines="0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8"
+				repeatCount="indefinite"
+				values="0;2;0;0"
+			/></circle
+		><circle cx="12" cy="2" r="0" fill="currentColor" transform="rotate(270 12 12)"
+			><animate
+				attributeName="r"
+				begin="0.75s"
+				calcMode="spline"
+				dur="1s"
+				keySplines="0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8"
+				repeatCount="indefinite"
+				values="0;2;0;0"
+			/></circle
+		><circle cx="12" cy="2" r="0" fill="currentColor" transform="rotate(315 12 12)"
+			><animate
+				attributeName="r"
+				begin="0.875s"
+				calcMode="spline"
+				dur="1s"
+				keySplines="0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8"
+				repeatCount="indefinite"
+				values="0;2;0;0"
+			/></circle
+		></svg
+	>
+{:then customers}
+	{#if customers.data.length}
+		<div class="mb-3">
+			<div class="table-container">
+				<table class="table table-hover">
+					<thead class="text-sm">
+						{#each $table.getHeaderGroups() as headerGroup}
+							<tr>
+								{#each headerGroup.headers as header}
+									<th>
+										{#if !header.isPlaceholder}
+											<svelte:component
+												this={flexRender(header.column.columnDef.header, header.getContext())}
+											/>
+										{/if}
+									</th>
+								{/each}
+							</tr>
+						{/each}
+					</thead>
+					<tbody>
+						{#each $table.getRowModel().rows as row}
+							<tr>
+								{#each row.getVisibleCells() as cell}
+									<td>
 										<svelte:component
-											this={flexRender(header.column.columnDef.header, header.getContext())}
+											this={flexRender(cell.column.columnDef.cell, cell.getContext())}
 										/>
-									{/if}
-								</th>
-							{/each}
-						</tr>
-					{/each}
-				</thead>
-				<tbody>
-					{#each $table.getRowModel().rows as row}
-						<tr>
-							{#each row.getVisibleCells() as cell}
-								<td>
-									<svelte:component
-										this={flexRender(cell.column.columnDef.cell, cell.getContext())}
-									/>
-								</td>
-							{/each}
-						</tr>
-					{/each}
-				</tbody>
-			</table>
+									</td>
+								{/each}
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
 		</div>
-		<div
-			class="flex flex-row w-max rounded border border-surface-300 dark:border-surface-600 mt-2 [&>*]:border-l [&>*]:border-surface-300 dark:[&>*]:border-surface-600 ml-auto"
+	{:else}
+		<div class="h-full text-error-500-400-token flex flex-col justify-center">
+			<p class="text-center">No customers found</p>
+		</div>
+	{/if}
+{/await}
+{#if totalCount}
+	<div
+		class="flex flex-row w-max rounded border border-surface-300 dark:border-surface-600 mt-2 [&>*]:border-l [&>*]:border-surface-300 dark:[&>*]:border-surface-600 ml-auto"
+	>
+		<button
+			aria-label="previous page"
+			class="w-9 h-9 grid place-items-center disabled:text-surface-300 dark:disabled:text-surface-400 hover:text-primary-400 first:border-l-0"
+			disabled={$table.getState().pagination.pageIndex === 0}
+			on:click={() => {
+				const query = new URLSearchParams($page.url.searchParams.toString());
+				query.set('page', (queryPageNumber - 1).toString());
+				query.set('pageSize', queryPageSize.toString());
+				goto(`?${query.toString()}`);
+			}}
 		>
-			<button
-				aria-label="previous page"
-				class="w-9 h-9 grid place-items-center disabled:text-surface-300 dark:disabled:text-surface-400 hover:text-primary-400 first:border-l-0"
-				disabled={$table.getState().pagination.pageIndex === 0}
-				on:click={() => {
-					const query = new URLSearchParams($page.url.searchParams.toString());
-					query.set('page', (queryPageNumber - 1).toString());
-					query.set('pageSize', queryPageSize.toString());
-					goto(`?${query.toString()}`);
-				}}
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="15"
+				height="15"
+				viewBox="0 0 15 15"
+				class="w-3 h-3"><path fill="currentColor" d="M3 7.5L11 0v15L3 7.5Z" /></svg
 			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="15"
-					height="15"
-					viewBox="0 0 15 15"
-					class="w-3 h-3"><path fill="currentColor" d="M3 7.5L11 0v15L3 7.5Z" /></svg
+		</button>
+		{#each getPagination($table.getState().pagination.pageIndex, Math.ceil(totalCount / 10)) as pageNumber}
+			{#if typeof pageNumber === 'number'}
+				<button
+					class="text-sm w-9 h-9 {pageNumber === $table.getState().pagination.pageIndex + 1
+						? 'text-primary-500'
+						: 'hover:text-primary-400'}"
+					on:click={() => {
+						const query = new URLSearchParams($page.url.searchParams.toString());
+						query.set('page', (+pageNumber).toString());
+						query.set('pageSize', queryPageSize.toString());
+						goto(`?${query.toString()}`);
+					}}>{pageNumber}</button
 				>
-			</button>
-			{#each getPagination($table.getState().pagination.pageIndex, Math.ceil(data.customers.count / 10)) as pageNumber}
-				{#if typeof pageNumber === 'number'}
-					<button
-						class="text-sm w-9 h-9 {pageNumber === $table.getState().pagination.pageIndex + 1
-							? 'text-primary-500'
-							: 'hover:text-primary-400'}"
-						on:click={() => {
-							const query = new URLSearchParams($page.url.searchParams.toString());
-							query.set('page', (+pageNumber).toString());
-							query.set('pageSize', queryPageSize.toString());
-							goto(`?${query.toString()}`);
-						}}>{pageNumber}</button
+			{:else}
+				<span class="text-sm w-9 h-9 grid place-items-center text-surface-300 dark:text-surface-400"
+					><svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="24"
+						height="24"
+						viewBox="0 0 24 24"
+						class="w-4 h-4"
+						><path
+							fill="none"
+							stroke="currentColor"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M4 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0m7 0a1 1 0 1 0 2 0a1 1 0 1 0-2 0m7 0a1 1 0 1 0 2 0a1 1 0 1 0-2 0"
+						/></svg
 					>
-				{:else}
-					<span
-						class="text-sm w-9 h-9 grid place-items-center text-surface-300 dark:text-surface-400"
-						><svg
-							xmlns="http://www.w3.org/2000/svg"
-							width="24"
-							height="24"
-							viewBox="0 0 24 24"
-							class="w-4 h-4"
-							><path
-								fill="none"
-								stroke="currentColor"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M4 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0m7 0a1 1 0 1 0 2 0a1 1 0 1 0-2 0m7 0a1 1 0 1 0 2 0a1 1 0 1 0-2 0"
-							/></svg
-						>
-					</span>
-				{/if}
-			{/each}
-			<button
-				aria-label="previous page"
-				class="w-9 h-9 grid place-items-center disabled:text-surface-300 dark:disabled:text-surface-400 hover:text-primary-400"
-				disabled={$table.getState().pagination.pageIndex ===
-					Math.ceil(data.customers.count / 10) - 1}
-				on:click={() => {
-					const query = new URLSearchParams($page.url.searchParams.toString());
-					query.set('page', (queryPageNumber + 1).toString());
-					query.set('pageSize', queryPageSize.toString());
-					goto(`?${query.toString()}`);
-				}}
+				</span>
+			{/if}
+		{/each}
+		<button
+			aria-label="previous page"
+			class="w-9 h-9 grid place-items-center disabled:text-surface-300 dark:disabled:text-surface-400 hover:text-primary-400"
+			disabled={$table.getState().pagination.pageIndex === Math.ceil(totalCount / 10) - 1}
+			on:click={() => {
+				const query = new URLSearchParams($page.url.searchParams.toString());
+				query.set('page', (queryPageNumber + 1).toString());
+				query.set('pageSize', queryPageSize.toString());
+				goto(`?${query.toString()}`);
+			}}
+		>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="15"
+				height="15"
+				viewBox="0 0 15 15"
+				class="w-3 h-3"><path fill="currentColor" d="M12 7.5L4 0v15l8-7.5Z" /></svg
 			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="15"
-					height="15"
-					viewBox="0 0 15 15"
-					class="w-3 h-3"><path fill="currentColor" d="M12 7.5L4 0v15l8-7.5Z" /></svg
-				>
-			</button>
-		</div>
-	</div>
-{:else}
-	<div class="h-full text-error-500-400-token flex flex-col justify-center">
-		<p class="text-center">No customers found</p>
+		</button>
 	</div>
 {/if}

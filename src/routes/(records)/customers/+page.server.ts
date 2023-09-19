@@ -63,6 +63,8 @@ export function load({ url }) {
 		}
 	}
 	return {
-		customers: getCustomer(page - 1, pageSize)
+		streamed: {
+			customers: getCustomer(page - 1, pageSize)
+		}
 	};
 }
