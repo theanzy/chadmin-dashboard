@@ -13,8 +13,11 @@
 	} from '@tanstack/svelte-table';
 	import { writable } from 'svelte/store';
 	import ExpandButton from './ExpandButton.svelte';
+	import { getModalStore, type ModalComponent, type ModalSettings } from '@skeletonlabs/skeleton';
+	import FilterForm from './FilterForm.svelte';
 
 	export let data;
+	const modalStore = getModalStore();
 
 	type ColumnType = (typeof data.transactions.data)[number];
 	const defaultColumns: ColumnDef<ColumnType>[] = [
@@ -81,9 +84,6 @@
 	$: {
 		options.update((old) => ({ ...old, data: data.transactions.data }));
 	}
-	$: {
-		console.log($table.getRowModel().rows);
-	}
 
 	function getUrlQueryString(pageNumber: number) {
 		const query = new URLSearchParams($page.url.searchParams.toString());
@@ -91,10 +91,51 @@
 		query.set('pageSize', queryPageSize.toString());
 		return `?${query.toString()}`;
 	}
+
+	let modalComponent: ModalComponent = {
+		// Pass a reference to your custom component
+		ref: FilterForm,
+		// Add the component properties as key/value pairs
+		slot: '<p></p>'
+	};
+
+	const modal: ModalSettings = {
+		type: 'component',
+		// Pass the component directly:
+		component: modalComponent
+	};
 </script>
 
 <h2 class="h3 font-bold">Transaction</h2>
 <h5 class="h6 text-surface-600-300-token mb-5">History of transactions made</h5>
+<div class="flex mb-3">
+	<button
+		class="btn variant-outline-surface ml-auto mr-2"
+		on:click={() => goto($page.url.pathname)}
+	>
+		<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+			><path
+				fill="currentColor"
+				d="M4 17q-.425 0-.713-.288T3 16q0-.425.288-.713T4 15h12q.425 0 .713.288T17 16q0 .425-.288.713T16 17H4Zm2-4q-.425 0-.713-.288T5 12q0-.425.288-.713T6 11h12q.425 0 .713.288T19 12q0 .425-.288.713T18 13H6Zm2-4q-.425 0-.713-.288T7 8q0-.425.288-.713T8 7h12q.425 0 .713.288T21 8q0 .425-.288.713T20 9H8Z"
+			/></svg
+		>
+		<span>Clear Filters</span>
+	</button>
+	<button class="btn variant-outline-surface" on:click={() => modalStore.trigger(modal)}
+		><svg
+			xmlns="http://www.w3.org/2000/svg"
+			width="16"
+			height="16"
+			viewBox="0 0 16 16"
+			class="w-6 h-6"
+			><path
+				fill="currentColor"
+				d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5zm-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"
+			/></svg
+		>
+		<span>Filters</span>
+	</button>
+</div>
 {#if data.transactions.data.length}
 	<div class="mb-3">
 		<div class="table-container">

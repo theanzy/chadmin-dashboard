@@ -1,14 +1,15 @@
 <script lang="ts">
 	import '../app.postcss';
 
-	import { AppShell, setInitialClassState } from '@skeletonlabs/skeleton';
+	import { AppShell, Modal, setInitialClassState } from '@skeletonlabs/skeleton';
 	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
 	import { storePopup } from '@skeletonlabs/skeleton';
+	import { initializeStores } from '@skeletonlabs/skeleton';
 
 	import Navbar from '$lib/components/Navbar.svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import { initSidebarContext } from '$lib/context/sidebar';
-
+	initializeStores();
 	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
 	initSidebarContext();
 
@@ -25,6 +26,7 @@
 
 <svelte:head>{@html `<script>(${loadInitialClassState.toString()})();</script>`}</svelte:head>
 
+<Modal />
 <AppShell class="min-h-screen">
 	<svelte:fragment slot="pageHeader">
 		<Navbar />
