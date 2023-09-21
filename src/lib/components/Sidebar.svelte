@@ -121,7 +121,7 @@
 				{@const isActive = $page.url.pathname === item.href}
 				<a
 					href={item.href}
-					class="p-3 md:p-2 {isActive
+					class="p-3 md:py-2 md:px-4 {isActive
 						? 'text-primary-500'
 						: 'hover:text-primary-400'} flex items-center gap-2 group"
 				>
@@ -137,7 +137,7 @@
 					<p class="hidden md:block text-sm">{item.label}</p>
 				</a>
 			{:else}
-				<p class="hidden md:block text-sm font-medium px-2 mt-4 mb-1 text-surface-600-300-token">
+				<p class="hidden md:block text-sm font-medium px-4 mt-4 mb-1 text-surface-600-300-token">
 					{item.label}
 				</p>
 			{/if}
