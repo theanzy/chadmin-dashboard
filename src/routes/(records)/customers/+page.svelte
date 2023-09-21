@@ -7,7 +7,7 @@
 	import type { ColumnDef, TableOptions } from '@tanstack/table-core/src/types';
 	import { currencyFormatter, getNullableVal } from '$lib/utils.js';
 	import SearchIcon from '$lib/components/icons/SearchIcon.svelte';
-	import { getPagination } from '$lib/paginate.js';
+	import Pagination from '$lib/components/Pagination.svelte';
 
 	export let data;
 
@@ -61,12 +61,19 @@
 
 	const table = createSvelteTable(options);
 
-	$: queryPageNumber = getNullableVal($page.url.searchParams.get('page'), 1, (x) => parseInt(x));
-	$: queryPageSize = getNullableVal($page.url.searchParams.get('pageSize'), 10, (x) => parseInt(x));
+	$: currentPageNumber = getNullableVal($page.url.searchParams.get('page'), 1, (x) => parseInt(x));
+	$: pageSize = getNullableVal($page.url.searchParams.get('pageSize'), 10, (x) => parseInt(x));
 	$: queryCustomerName = getNullableVal($page.url.searchParams.get('name'), '');
 
 	$: {
-		$table.setPageIndex(queryPageNumber - 1);
+		$table.setPageIndex(currentPageNumber - 1);
+	}
+
+	function getUrlQueryString(pageNumber: number) {
+		const query = new URLSearchParams($page.url.searchParams.toString());
+		query.set('page', pageNumber.toString());
+		query.set('pageSize', pageSize.toString());
+		return `?${query.toString()}`;
 	}
 </script>
 
@@ -212,79 +219,11 @@
 	{/if}
 {/await}
 {#if totalCount}
-	<div
-		class="flex flex-row w-max rounded border border-surface-300 dark:border-surface-600 mt-2 [&>*]:border-l [&>*]:border-surface-300 dark:[&>*]:border-surface-600 ml-auto"
-	>
-		<button
-			aria-label="previous page"
-			class="w-9 h-9 grid place-items-center disabled:text-surface-300 dark:disabled:text-surface-400 hover:text-primary-400 first:border-l-0"
-			disabled={$table.getState().pagination.pageIndex === 0}
-			on:click={() => {
-				const query = new URLSearchParams($page.url.searchParams.toString());
-				query.set('page', (queryPageNumber - 1).toString());
-				query.set('pageSize', queryPageSize.toString());
-				goto(`?${query.toString()}`);
-			}}
-		>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				width="15"
-				height="15"
-				viewBox="0 0 15 15"
-				class="w-3 h-3"><path fill="currentColor" d="M3 7.5L11 0v15L3 7.5Z" /></svg
-			>
-		</button>
-		{#each getPagination($table.getState().pagination.pageIndex, Math.ceil(totalCount / 10)) as pageNumber}
-			{#if typeof pageNumber === 'number'}
-				<button
-					class="text-sm w-9 h-9 {pageNumber === $table.getState().pagination.pageIndex + 1
-						? 'text-primary-500'
-						: 'hover:text-primary-400'}"
-					on:click={() => {
-						const query = new URLSearchParams($page.url.searchParams.toString());
-						query.set('page', (+pageNumber).toString());
-						query.set('pageSize', queryPageSize.toString());
-						goto(`?${query.toString()}`);
-					}}>{pageNumber}</button
-				>
-			{:else}
-				<span class="text-sm w-9 h-9 grid place-items-center text-surface-300 dark:text-surface-400"
-					><svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="24"
-						height="24"
-						viewBox="0 0 24 24"
-						class="w-4 h-4"
-						><path
-							fill="none"
-							stroke="currentColor"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M4 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0m7 0a1 1 0 1 0 2 0a1 1 0 1 0-2 0m7 0a1 1 0 1 0 2 0a1 1 0 1 0-2 0"
-						/></svg
-					>
-				</span>
-			{/if}
-		{/each}
-		<button
-			aria-label="previous page"
-			class="w-9 h-9 grid place-items-center disabled:text-surface-300 dark:disabled:text-surface-400 hover:text-primary-400"
-			disabled={$table.getState().pagination.pageIndex === Math.ceil(totalCount / 10) - 1}
-			on:click={() => {
-				const query = new URLSearchParams($page.url.searchParams.toString());
-				query.set('page', (queryPageNumber + 1).toString());
-				query.set('pageSize', queryPageSize.toString());
-				goto(`?${query.toString()}`);
-			}}
-		>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				width="15"
-				height="15"
-				viewBox="0 0 15 15"
-				class="w-3 h-3"><path fill="currentColor" d="M12 7.5L4 0v15l8-7.5Z" /></svg
-			>
-		</button>
-	</div>
+	<Pagination
+		bind:currentPageNumber
+		maxPage={Math.ceil(totalCount / pageSize) - 1 || 1}
+		on:change={(e) => {
+			goto(getUrlQueryString(e.detail));
+		}}
+	/>
 {/if}
