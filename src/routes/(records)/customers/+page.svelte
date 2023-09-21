@@ -8,6 +8,7 @@
 	import { currencyFormatter, getNullableVal } from '$lib/utils.js';
 	import SearchIcon from '$lib/components/icons/SearchIcon.svelte';
 	import Pagination from '$lib/components/Pagination.svelte';
+	import LoadingDots from '$lib/components/icons/LoadingDots.svelte';
 
 	export let data;
 
@@ -88,94 +89,7 @@
 	</button>
 </form>
 {#await data.streamed.customers}
-	<svg
-		xmlns="http://www.w3.org/2000/svg"
-		width="24"
-		height="24"
-		viewBox="0 0 24 24"
-		class="w-10 h-10 text-primary-500 mx-auto my-8"
-		><circle cx="12" cy="2" r="0" fill="currentColor"
-			><animate
-				attributeName="r"
-				begin="0"
-				calcMode="spline"
-				dur="1s"
-				keySplines="0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8"
-				repeatCount="indefinite"
-				values="0;2;0;0"
-			/></circle
-		><circle cx="12" cy="2" r="0" fill="currentColor" transform="rotate(45 12 12)"
-			><animate
-				attributeName="r"
-				begin="0.125s"
-				calcMode="spline"
-				dur="1s"
-				keySplines="0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8"
-				repeatCount="indefinite"
-				values="0;2;0;0"
-			/></circle
-		><circle cx="12" cy="2" r="0" fill="currentColor" transform="rotate(90 12 12)"
-			><animate
-				attributeName="r"
-				begin="0.25s"
-				calcMode="spline"
-				dur="1s"
-				keySplines="0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8"
-				repeatCount="indefinite"
-				values="0;2;0;0"
-			/></circle
-		><circle cx="12" cy="2" r="0" fill="currentColor" transform="rotate(135 12 12)"
-			><animate
-				attributeName="r"
-				begin="0.375s"
-				calcMode="spline"
-				dur="1s"
-				keySplines="0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8"
-				repeatCount="indefinite"
-				values="0;2;0;0"
-			/></circle
-		><circle cx="12" cy="2" r="0" fill="currentColor" transform="rotate(180 12 12)"
-			><animate
-				attributeName="r"
-				begin="0.5s"
-				calcMode="spline"
-				dur="1s"
-				keySplines="0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8"
-				repeatCount="indefinite"
-				values="0;2;0;0"
-			/></circle
-		><circle cx="12" cy="2" r="0" fill="currentColor" transform="rotate(225 12 12)"
-			><animate
-				attributeName="r"
-				begin="0.625s"
-				calcMode="spline"
-				dur="1s"
-				keySplines="0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8"
-				repeatCount="indefinite"
-				values="0;2;0;0"
-			/></circle
-		><circle cx="12" cy="2" r="0" fill="currentColor" transform="rotate(270 12 12)"
-			><animate
-				attributeName="r"
-				begin="0.75s"
-				calcMode="spline"
-				dur="1s"
-				keySplines="0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8"
-				repeatCount="indefinite"
-				values="0;2;0;0"
-			/></circle
-		><circle cx="12" cy="2" r="0" fill="currentColor" transform="rotate(315 12 12)"
-			><animate
-				attributeName="r"
-				begin="0.875s"
-				calcMode="spline"
-				dur="1s"
-				keySplines="0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8"
-				repeatCount="indefinite"
-				values="0;2;0;0"
-			/></circle
-		></svg
-	>
+	<LoadingDots class="w-10 h-10 text-primary-500 mx-auto my-8" />
 {:then customers}
 	{#if customers.data.length}
 		<div class="mb-3">
