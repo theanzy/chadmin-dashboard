@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { getPagination } from '$lib/paginate.js';
 	import { currencyFormatter, formatDate, getNullableVal } from '$lib/utils.js';
 	import {
 		getCoreRowModel,
@@ -10,8 +9,6 @@
 		createSvelteTable,
 		flexRender,
 		getExpandedRowModel,
-		type SortingState,
-		getSortedRowModel,
 		type SortDirection
 	} from '@tanstack/svelte-table';
 	import { writable } from 'svelte/store';
@@ -19,6 +16,9 @@
 	import { getModalStore, type ModalComponent, type ModalSettings } from '@skeletonlabs/skeleton';
 	import FilterForm from './FilterForm.svelte';
 	import Pagination from '$lib/components/Pagination.svelte';
+	import ToggleSortButton from '$lib/components/ToggleSortButton.svelte';
+	import Filter from '$lib/components/icons/Filter.svelte';
+	import ClearFilterIcon from '$lib/components/icons/ClearFilterIcon.svelte';
 
 	export let data;
 	const modalStore = getModalStore();
@@ -71,11 +71,10 @@
 		}
 	];
 
-	const options = writable<TableOptions<any>>({
+	const options = writable<TableOptions<ColumnType>>({
 		data: data.transactions.data,
 		columns: defaultColumns,
 		manualSorting: true,
-
 		getRowCanExpand: () => true,
 		getCoreRowModel: getCoreRowModel(),
 		getExpandedRowModel: getExpandedRowModel()
@@ -165,26 +164,11 @@
 		class="btn variant-outline-surface ml-auto mr-2"
 		on:click={() => goto($page.url.pathname)}
 	>
-		<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-			><path
-				fill="currentColor"
-				d="M4 17q-.425 0-.713-.288T3 16q0-.425.288-.713T4 15h12q.425 0 .713.288T17 16q0 .425-.288.713T16 17H4Zm2-4q-.425 0-.713-.288T5 12q0-.425.288-.713T6 11h12q.425 0 .713.288T19 12q0 .425-.288.713T18 13H6Zm2-4q-.425 0-.713-.288T7 8q0-.425.288-.713T8 7h12q.425 0 .713.288T21 8q0 .425-.288.713T20 9H8Z"
-			/></svg
-		>
+		<ClearFilterIcon class="w-6 h-6 mr-1" />
 		<span>Clear Filters</span>
 	</button>
 	<button class="btn variant-outline-surface" on:click={() => modalStore.trigger(modal)}
-		><svg
-			xmlns="http://www.w3.org/2000/svg"
-			width="16"
-			height="16"
-			viewBox="0 0 16 16"
-			class="w-6 h-6"
-			><path
-				fill="currentColor"
-				d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5zm-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"
-			/></svg
-		>
+		><Filter class="w-6 h-6 mr-1" />
 		<span>Filters</span>
 	</button>
 </div>
@@ -199,9 +183,9 @@
 								<th class="group relative">
 									{#if !header.isPlaceholder}
 										{#if header.column.columnDef.enableSorting}
-											<button
-												class="flex"
-												on:click={(e) => {
+											<ToggleSortButton
+												sortOrder={header.column.getIsSorted() || null}
+												on:click={() => {
 													if (header.column.columnDef.id) {
 														goto(
 															getUrlQueryString({
@@ -218,30 +202,12 @@
 												<svelte:component
 													this={flexRender(header.column.columnDef.header, header.getContext())}
 												/>
-												<svg
-													xmlns="http://www.w3.org/2000/svg"
-													width="16"
-													height="16"
-													viewBox="0 0 16 16"
-													class="w-5 h-5 ml-1 {!header.column.getIsSorted()
-														? 'invisible'
-														: 'visible'} group-hover:visible transition {header.column.getIsSorted() ===
-													'desc'
-														? 'rotate-180'
-														: ''}"
-													><path
-														fill="currentColor"
-														d="M3.47 7.78a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0l4.25 4.25a.751.751 0 0 1-.018 1.042a.751.751 0 0 1-1.042.018L9 4.81v7.44a.75.75 0 0 1-1.5 0V4.81L4.53 7.78a.75.75 0 0 1-1.06 0Z"
-													/></svg
-												>
-											</button>
+											</ToggleSortButton>
 										{:else}
 											<svelte:component
 												this={flexRender(header.column.columnDef.header, header.getContext())}
 											/>
 										{/if}
-										<!-- <p>sorting enabled {JSON.stringify(header.column.getCanSort())}</p> -->
-										<!-- <p>is sorted {JSON.stringify(header.column.getIsSorted())}</p> -->
 									{/if}
 								</th>
 							{/each}
@@ -298,7 +264,7 @@
 	</div>
 	<Pagination
 		bind:currentPageNumber
-		maxPage={Math.ceil(data.transactions.count / pageSize) - 1 || 1}
+		maxPage={Math.ceil(data.transactions.count / pageSize) || 1}
 		on:change={(e) => {
 			goto(getUrlQueryString({ pageNumber: e.detail }));
 		}}

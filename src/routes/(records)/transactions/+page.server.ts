@@ -92,7 +92,7 @@ export async function load({ url }) {
 							return arr.map((d: { price: number }) => {
 								d.price /= 100;
 								return d;
-							}) as { id: number; price: number; name: string }[];
+							}) as { id: number; price: number; name: string; quantity: number }[];
 						})
 						.as('products'),
 					createdAt: transactionRecords.createdAt

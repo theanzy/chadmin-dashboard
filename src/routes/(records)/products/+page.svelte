@@ -58,7 +58,7 @@
 	</div>
 	<Pagination
 		bind:currentPageNumber
-		maxPage={Math.ceil(data.products.count / pageSize) - 1 || 1}
+		maxPage={Math.ceil(data.products.count / pageSize) || 1}
 		on:change={(e) => {
 			goto(getUrlQueryString(e.detail));
 		}}

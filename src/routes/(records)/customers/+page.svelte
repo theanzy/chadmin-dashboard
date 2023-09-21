@@ -221,7 +221,7 @@
 {#if totalCount}
 	<Pagination
 		bind:currentPageNumber
-		maxPage={Math.ceil(totalCount / pageSize) - 1 || 1}
+		maxPage={Math.ceil(totalCount / pageSize) || 1}
 		on:change={(e) => {
 			goto(getUrlQueryString(e.detail));
 		}}

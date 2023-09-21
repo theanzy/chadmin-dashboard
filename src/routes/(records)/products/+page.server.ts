@@ -11,7 +11,7 @@ export async function load({ url }) {
 	const page = pageStr ? parseInt(pageStr) : 1;
 	const pageSize = pageSizeStr ? parseInt(pageSizeStr) : 10;
 
-	async function getProducts(year: number) {
+	async function getProducts(year: number, pageIndex: number, pageSize: number) {
 		try {
 			const satisfyYear = eq(sql<number>`date_part('year', ${transactions.createdAt})`, year);
 
@@ -40,7 +40,7 @@ export async function load({ url }) {
 				})
 				.from(sql`${query} as cte`);
 			const data = await query
-				.offset(page * pageSize)
+				.offset(pageIndex * pageSize)
 				.limit(pageSize)
 				.orderBy(products.id);
 			const result = data.map((d) => {
@@ -62,5 +62,5 @@ export async function load({ url }) {
 		}
 	}
 
-	return { products: getProducts(new Date().getUTCFullYear()) };
+	return { products: getProducts(new Date().getUTCFullYear(), page - 1, pageSize) };
 }
