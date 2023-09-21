@@ -1,5 +1,5 @@
 import { db } from '$lib/db';
-import { aliasedTable, and, eq, gte, ilike, lte, sql } from 'drizzle-orm';
+import { aliasedTable, and, asc, desc, eq, gte, ilike, lte, sql } from 'drizzle-orm';
 import { products, productsTransactions, transactions, users } from '../../../schema';
 import { getNullableVal } from '$lib/utils';
 
@@ -16,6 +16,8 @@ export async function load({ url }) {
 	const pageSizeStr = url.searchParams.get('pageSize');
 	const page = pageStr ? parseInt(pageStr) : 1;
 	const pageSize = pageSizeStr ? parseInt(pageSizeStr) : 10;
+	const sortBy = getNullableVal(url.searchParams.get('sort_by'), undefined, String);
+	const orderBy = getNullableVal(url.searchParams.get('order_by'), undefined, String);
 	const searchParams = {
 		transactionId: getNullableVal(url.searchParams.get('id'), undefined, (d) => parseInt(d)),
 		customer: getNullableVal(url.searchParams.get('customer'), undefined),
@@ -50,7 +52,7 @@ export async function load({ url }) {
 				.innerJoin(products, eq(productsTransactions.productId, products.id))
 				.innerJoin(customers, and(eq(customers.id, transactions.customerId)))
 				.innerJoin(affiliates, and(eq(affiliates.id, transactions.affiliateId)))
-				.where((a) => {
+				.where(() => {
 					const searchConditions: ReturnType<typeof ilike>[] = [];
 
 					if (searchParams.customer?.length) {
@@ -129,7 +131,27 @@ export async function load({ url }) {
 				.from(aggregateQuery)
 				.offset(pageIndex * pageSize)
 				.limit(pageSize)
-				.orderBy(aggregateQuery.createdAt, aggregateQuery.transactionId);
+				.orderBy(() => {
+					const defaultOrder = [desc(aggregateQuery.createdAt), asc(aggregateQuery.transactionId)];
+					if (!sortBy || !orderBy) {
+						return defaultOrder;
+					}
+					if (sortBy === 'amount') {
+						if (orderBy === 'desc') {
+							return [desc(aggregateQuery.amount), asc(aggregateQuery.transactionId)];
+						} else {
+							return [asc(aggregateQuery.amount), asc(aggregateQuery.transactionId)];
+						}
+					}
+					if (sortBy === 'date') {
+						if (orderBy === 'desc') {
+							return [desc(aggregateQuery.createdAt), asc(aggregateQuery.transactionId)];
+						} else {
+							return [asc(aggregateQuery.createdAt), asc(aggregateQuery.transactionId)];
+						}
+					}
+					return defaultOrder;
+				});
 			console.timeEnd('query_transactions');
 			// return result;
 			console.log(countResult, JSON.stringify(data, null, 2));

@@ -9,7 +9,10 @@
 		type TableOptions,
 		createSvelteTable,
 		flexRender,
-		getExpandedRowModel
+		getExpandedRowModel,
+		type SortingState,
+		getSortedRowModel,
+		type SortDirection
 	} from '@tanstack/svelte-table';
 	import { writable } from 'svelte/store';
 	import ExpandButton from './ExpandButton.svelte';
@@ -42,7 +45,8 @@
 			accessorFn: (row) => formatDate(row.createdAt),
 			id: 'date',
 			cell: (info) => info.getValue(),
-			header: () => 'Date'
+			header: () => 'Date',
+			enableSorting: true
 		},
 		{
 			accessorFn: (row) => row.customer,
@@ -61,6 +65,7 @@
 		{
 			accessorFn: (row) => currencyFormatter.format(row.amount),
 			id: 'amount',
+			enableSorting: true,
 			cell: (info) => info.getValue(),
 			header: () => 'Amount'
 		}
@@ -69,10 +74,46 @@
 	const options = writable<TableOptions<any>>({
 		data: data.transactions.data,
 		columns: defaultColumns,
+		manualSorting: true,
+
 		getRowCanExpand: () => true,
 		getCoreRowModel: getCoreRowModel(),
 		getExpandedRowModel: getExpandedRowModel()
 	});
+
+	function getToggledSorting(sortBy: string, orderBy: false | SortDirection) {
+		return {
+			sortBy,
+			orderBy: orderBy === 'desc' ? 'asc' : 'desc'
+		};
+	}
+
+	$: {
+		const sortBy = getNullableVal($page.url.searchParams.get('sort_by'), undefined);
+		const orderBy = getNullableVal($page.url.searchParams.get('order_by'), undefined);
+
+		if (sortBy && orderBy) {
+			options.update((old) => {
+				return {
+					...old,
+					state: {
+						...old.state,
+						sorting: [{ id: sortBy, desc: orderBy === 'desc' }]
+					}
+				};
+			});
+		} else {
+			options.update((old) => {
+				return {
+					...old,
+					state: {
+						...old.state,
+						sorting: []
+					}
+				};
+			});
+		}
+	}
 
 	const table = createSvelteTable(options);
 
@@ -86,10 +127,20 @@
 		options.update((old) => ({ ...old, data: data.transactions.data }));
 	}
 
-	function getUrlQueryString(pageNumber: number) {
+	function getUrlQueryString({
+		pageNumber,
+		sorting
+	}: {
+		pageNumber: number;
+		sorting?: { sortBy: string; orderBy: string };
+	}) {
 		const query = new URLSearchParams($page.url.searchParams.toString());
 		query.set('page', pageNumber.toString());
 		query.set('pageSize', pageSize.toString());
+		if (sorting) {
+			query.set('sort_by', sorting.sortBy);
+			query.set('order_by', sorting.orderBy);
+		}
 		return `?${query.toString()}`;
 	}
 
@@ -145,11 +196,52 @@
 					{#each $table.getHeaderGroups() as headerGroup}
 						<tr>
 							{#each headerGroup.headers as header}
-								<th>
+								<th class="group relative">
 									{#if !header.isPlaceholder}
-										<svelte:component
-											this={flexRender(header.column.columnDef.header, header.getContext())}
-										/>
+										{#if header.column.columnDef.enableSorting}
+											<button
+												class="flex"
+												on:click={(e) => {
+													if (header.column.columnDef.id) {
+														goto(
+															getUrlQueryString({
+																pageNumber: 1,
+																sorting: getToggledSorting(
+																	header.column.columnDef.id,
+																	header.column.getIsSorted()
+																)
+															})
+														);
+													}
+												}}
+											>
+												<svelte:component
+													this={flexRender(header.column.columnDef.header, header.getContext())}
+												/>
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													width="16"
+													height="16"
+													viewBox="0 0 16 16"
+													class="w-5 h-5 ml-1 {!header.column.getIsSorted()
+														? 'invisible'
+														: 'visible'} group-hover:visible transition {header.column.getIsSorted() ===
+													'desc'
+														? 'rotate-180'
+														: ''}"
+													><path
+														fill="currentColor"
+														d="M3.47 7.78a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0l4.25 4.25a.751.751 0 0 1-.018 1.042a.751.751 0 0 1-1.042.018L9 4.81v7.44a.75.75 0 0 1-1.5 0V4.81L4.53 7.78a.75.75 0 0 1-1.06 0Z"
+													/></svg
+												>
+											</button>
+										{:else}
+											<svelte:component
+												this={flexRender(header.column.columnDef.header, header.getContext())}
+											/>
+										{/if}
+										<!-- <p>sorting enabled {JSON.stringify(header.column.getCanSort())}</p> -->
+										<!-- <p>is sorted {JSON.stringify(header.column.getIsSorted())}</p> -->
 									{/if}
 								</th>
 							{/each}
@@ -208,7 +300,7 @@
 		bind:currentPageNumber
 		maxPage={Math.ceil(data.transactions.count / pageSize) - 1 || 1}
 		on:change={(e) => {
-			goto(getUrlQueryString(e.detail));
+			goto(getUrlQueryString({ pageNumber: e.detail }));
 		}}
 	/>
 {:else}
