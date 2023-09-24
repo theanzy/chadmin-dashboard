@@ -71,26 +71,55 @@
 		function updateData(dataset: DataType[]) {
 			/* ------- PIE SLICES -------*/
 			const chart_data = pieFn(dataset);
+			const data0 = svg.select('.slices').selectAll('path.slice').data();
+			const data1 = chart_data;
 			color.domain(dataset.map((d) => d.label));
 			svg
 				.select('.slices')
 				.selectAll('path.slice')
-				.data(chart_data)
+				.data(data1, key)
+				.join(
+					function enter(enter) {
+						return enter
+							.append('path')
+							.attr('class', 'slice')
+							.attr('fill', function (d) {
+								return color(key(d));
+							})
+							.each(function (d, i) {
+								this._current = findNeighborArc(i, data0, data1, key) || d;
+							})
+							.transition()
+							.duration(300)
+							.attr('opacity', 0);
+					},
+					function update(update) {
+						return update;
+					},
+					function exit(exit) {
+						return exit
+							.datum((d, i) => findNeighborArc(i, data1, data0, key) || d)
+							.transition()
+							.duration(300)
+							.attrTween('d', arcTween)
+							.remove();
+					}
+				)
 				.join('path')
+				.transition()
+				.duration(300)
+				.tween('d', arcTween)
 				.attr('class', 'slice')
 				.attr('d', arc)
-				.attr('fill', (d) => {
-					return color(key(d));
-				})
-				.style('opacity', 0.7)
-				.append('title')
-				.text((d) => `${key(d)}: ${currencyFormatter.format(d.data.value)}`);
+				.style('opacity', 0.7);
+			// .append('title')
+			// .text((d) => `${key(d)}: ${currencyFormatter.format(d.data.value)}`);
 
 			svg.select('.labels').selectAll('.label-text').remove();
 			svg
 				.select('.labels')
 				.selectAll()
-				.data(chart_data)
+				.data(chart_data, key)
 				.join('text')
 				.attr('class', 'label-text')
 				.attr('transform', (d) => `translate(${arc.centroid(d)})`)
@@ -109,6 +138,43 @@
 						.attr('fill-opacity', 0.7)
 						.text((d) => currencyFormatter.format(d.data.value))
 				);
+		}
+		function findNeighborArc(i: number, data0: any, data1: any, key: (d: any) => string) {
+			var d;
+			return (d = findPreceding(i, data0, data1, key))
+				? { startAngle: d.endAngle, endAngle: d.endAngle }
+				: (d = findFollowing(i, data0, data1, key))
+				? { startAngle: d.startAngle, endAngle: d.startAngle }
+				: null;
+		}
+
+		function findPreceding(i: number, data0: any, data1: any, key: (d: any) => string) {
+			const m = data0.length;
+			while (--i >= 0) {
+				const k = key(data1[i]);
+				for (var j = 0; j < m; ++j) {
+					if (key(data0[j]) === k) return data0[j];
+				}
+			}
+		}
+
+		function findFollowing(i: number, data0: any, data1: any, key: (d: any) => string) {
+			const n = data1.length;
+			const m = data0.length;
+			while (++i < n) {
+				var k = key(data1[i]);
+				for (var j = 0; j < m; ++j) {
+					if (key(data0[j]) === k) return data0[j];
+				}
+			}
+		}
+		function arcTween(d, index) {
+			this._current = this._current || d;
+			const interpolate = d3.interpolate(this._current, d);
+			this._current = interpolate(0);
+			return function (t) {
+				return arc(interpolate(t), index);
+			};
 		}
 
 		function key(d: { data: { label: string } }) {
