@@ -80,11 +80,12 @@
 				.attr('class', 'slice')
 				.attr('d', arc)
 				.attr('fill', (d) => {
-					return color(d.data.label);
+					return color(key(d));
 				})
 				.style('opacity', 0.7)
 				.append('title')
-				.text((d) => `${d.data.label}: ${currencyFormatter.format(d.data.value)}`);
+				.text((d) => `${key(d)}: ${currencyFormatter.format(d.data.value)}`);
+
 			svg.select('.labels').selectAll('.label-text').remove();
 			svg
 				.select('.labels')
@@ -99,7 +100,7 @@
 						.attr('y', '-0.4em')
 						.attr('fill', 'currentColor')
 						.attr('font-weight', 'bold')
-						.text((d) => d.data.label)
+						.text(key)
 						.filter((d) => d.endAngle - d.startAngle > 0.25)
 						.append('tspan')
 						.attr('x', 0)
@@ -109,6 +110,11 @@
 						.text((d) => currencyFormatter.format(d.data.value))
 				);
 		}
+
+		function key(d: { data: { label: string } }) {
+			return d.data.label;
+		}
+
 		return {
 			update({ dataset }: { dataset: DataType[] }) {
 				updateData(dataset);
