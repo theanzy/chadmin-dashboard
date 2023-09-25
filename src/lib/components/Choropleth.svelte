@@ -6,7 +6,7 @@
 		let svg = d3.select(containerEl).append('svg');
 
 		const path = d3.geoPath();
-		const projection = d3.geoMercator().scale(100).center([0, 40]);
+		const projection = d3.geoMercator();
 
 		let topoPromise = d3.json(
 			'https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson'
@@ -27,7 +27,9 @@
 			containerEl.innerHTML = '';
 
 			const { width, height } = containerEl.getBoundingClientRect();
-
+			projection
+				.scale(Math.min(20 + 0.05 * width, 120))
+				.center([0, Math.min(10 + 0.01 * width, 30)]);
 			svg = d3.select(containerEl).append('svg');
 
 			svg.attr('width', width);
