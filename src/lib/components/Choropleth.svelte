@@ -25,6 +25,11 @@
 		window.addEventListener('resize', drawChart);
 		async function drawChart() {
 			containerEl.innerHTML = '';
+			const tooltip = d3
+				.select(containerEl)
+				.append('div')
+				.attr('class', 'bg-surface-600 text-white rounded p-2 absolute text-sm font-inherit shadow')
+				.style('opacity', 0);
 
 			const { width, height } = containerEl.getBoundingClientRect();
 			projection
@@ -35,8 +40,10 @@
 			svg.attr('width', width);
 			svg.attr('height', height);
 			projection.translate([width / 2, height / 2]);
+
 			const topology = await topoPromise;
 			updateData(dataset, topology);
+
 			function updateData(dataset: { code: string; value: number }[], topo: any) {
 				const dataMap = new Map<string, number>();
 				dataset.forEach((d) => {
@@ -47,13 +54,47 @@
 					.selectAll('path')
 					.data(topo.features)
 					.join('path')
+					.attr('class', 'country')
 					// draw each country
 					.attr('d', path.projection(projection))
 					// set the color of each country
 					.attr('fill', function (d) {
 						d.total = dataMap.get(d.id) || 0;
 						return colorScale(d.total);
-					});
+					})
+					.on('mouseover', mouseOver)
+					.on('mouseleave', mouseLeave);
+			}
+
+			function mouseOver(e) {
+				const [x, y] = d3.pointer(e);
+				d3.selectAll('path.country')
+					.transition()
+					.duration(200)
+					.style('opacity', 0.5)
+					.style('stroke', 'transparent');
+				d3.select(e.target).transition().duration(200).style('opacity', 1).style('stroke', 'black');
+				const data = d3.select(e.target).data()[0];
+				const tooltipText = `${data.properties.name}: ${data.total}`;
+				let xPos = x + 20;
+				let yPos = y + 70;
+				tooltip
+					.style('left', xPos + 'px')
+					.style('top', yPos + 'px')
+					.transition()
+					.duration(400)
+					.style('opacity', 1)
+					.text(tooltipText);
+			}
+
+			function mouseLeave() {
+				d3.selectAll('path.country')
+					.transition()
+					.duration(200)
+					.style('opacity', 1)
+					.style('stroke', 'transparent');
+
+				tooltip.transition().duration(300).style('opacity', 0);
 			}
 		}
 	}
