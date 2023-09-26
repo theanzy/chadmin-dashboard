@@ -44,6 +44,7 @@
 	<div class="h-[50vh] w-full">
 		<LineChart
 			{dataset}
+			enableArea={true}
 			tooltipValueGetter={(d) => {
 				return {
 					x: d.x.toLocaleString('default', { month: 'long' }),

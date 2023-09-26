@@ -12,6 +12,7 @@
 
 	export let dataset: Array<SeriesDataType> = [];
 	export let tooltipValueGetter: TooltipValueGetter;
+	export let enableArea = false;
 
 	const bisect = d3.bisector((d: any) => d.x).left;
 
@@ -21,18 +22,24 @@
 		{
 			margin,
 			tooltipValueGetter,
-			dataset
+			dataset,
+			enableArea
 		}: {
 			dataset: Array<SeriesDataType>;
 			margin: Margin;
 			tooltipValueGetter?: TooltipValueGetter;
+			enableArea: boolean;
 		}
 	) {
 		// Define the x and y domains
 		const xScale = d3.scaleTime().domain(d3.extent(dataset, (d) => d.x));
 		const yMax = d3.max(dataset, (d) => d.y) ?? 0;
 		const yScale = d3.scaleLinear().domain([0, yMax]);
+		const areaGenerator = d3
+			.area()
+			.x((d) => xScale(d.x))
 
+			.y1((d) => yScale(d.y));
 		// Create the line generator
 		const lineFn = d3
 			.line()
@@ -54,9 +61,7 @@
 				vizContainer.getBoundingClientRect();
 			const width = containerWidth - margin.left - margin.right;
 			const height = containerHeight - margin.top - margin.bottom;
-
 			// create tooltip div
-
 			tooltip = d3
 				.select(vizContainer)
 				.append('div')
@@ -66,6 +71,7 @@
 			// Set up the x and y scales
 			xScale.range([0, width]);
 			yScale.range([height, 0]);
+			areaGenerator.y0(height);
 			// Create the SVG element and append it to the chart container
 			const svg = d3
 				.select(vizContainer)
@@ -73,6 +79,16 @@
 				.attr('width', width + margin.left + margin.right)
 				.attr('height', height + margin.top + margin.bottom);
 			const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+
+			if (enableArea) {
+				g.append('path')
+					.datum(dataset)
+					.attr('fill', '#7700ee')
+					.attr('fill-opacity', 0.2)
+					.attr('stroke', 'none')
+					.attr('class', 'area')
+					.attr('d', areaGenerator);
+			}
 
 			// Add the x-axis
 			xAxis = g.append('g').attr('transform', `translate(0,${height})`).call(d3.axisBottom(xScale));
@@ -96,7 +112,7 @@
 			// Add a circle element
 			tooltipCircle = g
 				.append('circle')
-				.attr('r', 5)
+				.attr('r', 0)
 				.attr('fill', '#7700ee')
 				.style('stroke', 'white')
 				.attr('opacity', 0.7)
@@ -166,7 +182,7 @@
 
 			tooltip.style('left', `${tooltipXPos}px`).style('top', `${tooltipYPos}px`);
 		}
-		function updateChart(dataset: SeriesDataType[]) {
+		function updateChart(dataset: SeriesDataType[], enableArea: boolean) {
 			// new scale
 			xScale.domain(d3.extent(dataset, (d) => d.x));
 			const yMax = d3.max(dataset, (d) => d.y) ?? 0;
@@ -200,10 +216,21 @@
 				.attr('fill', '#7700ee')
 				.style('stroke', 'white')
 				.attr('opacity', 0.7);
+
+			// area
+			if (enableArea) {
+				d3.selectAll('.area')
+					.datum(dataset)
+					.transition()
+					.duration(1000)
+					.attr('fill-opacity', 0.2)
+					.attr('stroke', 'none')
+					.attr('d', areaGenerator);
+			}
 		}
 		return {
-			update({ dataset }: { dataset: SeriesDataType[] }) {
-				updateChart(dataset);
+			update({ dataset, enableArea }: { dataset: SeriesDataType[]; enableArea: boolean }) {
+				updateChart(dataset, enableArea);
 			},
 			destroy() {
 				window.removeEventListener('resize', redraw);
@@ -217,6 +244,7 @@
 
 <div
 	use:drawLineChart={{
+		enableArea: enableArea,
 		dataset: dataset,
 		margin: {
 			top: 20,
