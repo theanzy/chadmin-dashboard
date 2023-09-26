@@ -39,10 +39,9 @@
 			.x((d) => xScale(d.x))
 			.y((d) => yScale(d.y));
 
-		let line: d3.Selection<SVGPathElement, unknown, null, undefined>;
 		let xAxis: d3.Selection<SVGGElement, unknown, null, undefined>;
 		let yAxis: d3.Selection<SVGGElement, unknown, null, undefined>;
-		let circle: d3.Selection<SVGCircleElement, unknown, null, undefined>;
+		let tooltipCircle: d3.Selection<SVGCircleElement, unknown, null, undefined>;
 		let listeningRect: d3.Selection<SVGRectElement, unknown, null, undefined>;
 		let tooltip: d3.Selection<HTMLDivElement, unknown, null, undefined>;
 
@@ -50,9 +49,6 @@
 		window.addEventListener('resize', redraw);
 
 		function redraw(): void {
-			if (!vizContainer) {
-				return;
-			}
 			vizContainer.innerHTML = '';
 			const { width: containerWidth, height: containerHeight } =
 				vizContainer.getBoundingClientRect();
@@ -76,37 +72,38 @@
 				.append('svg')
 				.attr('width', width + margin.left + margin.right)
 				.attr('height', height + margin.top + margin.bottom);
-			const vizGraph = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+			const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
 
 			// Add the x-axis
-			xAxis = vizGraph
-				.append('g')
-				.attr('transform', `translate(0,${height})`)
-				.call(d3.axisBottom(xScale));
+			xAxis = g.append('g').attr('transform', `translate(0,${height})`).call(d3.axisBottom(xScale));
 
 			// Add the y-axis
-			yAxis = vizGraph.append('g').call(d3.axisLeft(yScale).tickFormat(d3.format('~s')));
+			yAxis = g.append('g').call(d3.axisLeft(yScale).tickFormat(d3.format('~s')));
 
 			// Add the line path to the SVG element
-			line = vizGraph
-				.append('path')
-				.datum(dataset)
-				.attr('fill', 'none')
-				.attr('stroke', '#7700ee')
-				.attr('stroke-width', 1)
-				.attr('d', lineFn);
+			g.selectAll('lines').data(dataset, key).join('path').attr('class', 'lines');
+
+			// Add the circles
+			g.selectAll('myCircles')
+				.data(dataset, key)
+				.join('circle')
+				.attr('class', 'circles')
+				.attr('cx', (d) => {
+					return xScale(d.x);
+				})
+				.attr('cy', (d) => yScale(d.y));
 
 			// Add a circle element
-			circle = vizGraph
+			tooltipCircle = g
 				.append('circle')
-				.attr('r', 0)
-				.attr('fill', '#333')
+				.attr('r', 5)
+				.attr('fill', '#7700ee')
 				.style('stroke', 'white')
 				.attr('opacity', 0.7)
 				.style('pointer-events', 'none');
-			// create a listening rectangle
 
-			listeningRect = vizGraph
+			// create a listening rectangle
+			listeningRect = g
 				.append('rect')
 				.attr('width', width)
 				.attr('fill', 'transparent')
@@ -116,10 +113,11 @@
 			listeningRect.on('mousemove', (e) => onMouseMove(e, dataset));
 			// listening rectangle mouse leave function
 			listeningRect.on('mouseleave', onMouseLeave);
+			updateChart(dataset);
 		}
 
 		function onMouseLeave() {
-			circle.transition().duration(50).attr('r', 0);
+			tooltipCircle.transition().duration(50).attr('r', 5);
 			tooltip.style('display', 'none');
 		}
 
@@ -133,10 +131,7 @@
 			const xPos = xScale(dTarget.x);
 			const yPos = yScale(dTarget.y);
 
-			circle.attr('cx', xPos).attr('cy', yPos);
-
-			// Add transition for the circle radius
-			circle.transition().duration(50).attr('r', 5);
+			tooltipCircle.attr('cx', xPos).attr('cy', yPos);
 
 			// tooltip content
 			let tooltipXDisplay = dTarget.x.toUTCString();
@@ -182,7 +177,9 @@
 			yAxis.call(d3.axisLeft(yScale).tickFormat(d3.format('~s')));
 			listeningRect.on('mousemove', (e) => onMouseMove(e, dataset));
 			listeningRect.on('mouseleave', onMouseLeave);
-			line
+
+			// line
+			d3.selectAll('path.lines')
 				.datum(dataset)
 				.transition()
 				.duration(1000)
@@ -190,6 +187,19 @@
 				.attr('stroke', '#7700ee')
 				.attr('stroke-width', 1)
 				.attr('d', lineFn);
+			// circles
+			d3.selectAll('circle.circles')
+				.data(dataset, key)
+				.transition()
+				.duration(1000)
+				.attr('cx', (d) => {
+					return xScale(d.x);
+				})
+				.attr('cy', (d) => yScale(d.y))
+				.attr('r', 5)
+				.attr('fill', '#7700ee')
+				.style('stroke', 'white')
+				.attr('opacity', 0.7);
 		}
 		return {
 			update({ dataset }: { dataset: SeriesDataType[] }) {
@@ -199,6 +209,9 @@
 				window.removeEventListener('resize', redraw);
 			}
 		};
+		function key(d: { x: any }) {
+			return d.x;
+		}
 	}
 </script>
 
@@ -231,5 +244,6 @@
 		background-color: theme(colors.surface.500);
 		font-size: theme(fontSize.xs);
 		font-family: inherit;
+		pointer-events: none;
 	}
 </style>
