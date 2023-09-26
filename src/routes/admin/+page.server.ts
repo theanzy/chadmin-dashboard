@@ -21,7 +21,7 @@ export async function load({ url }) {
 				.where(eq(users.role, 'admin'))
 				.orderBy(users.id);
 
-			const adminUsers = db.$with('tr').as(query);
+			const adminUsers = db.$with('admins').as(query);
 
 			const data = await db
 				.with(adminUsers)

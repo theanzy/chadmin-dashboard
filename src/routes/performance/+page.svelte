@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import Pagination from '$lib/components/Pagination.svelte';
-	import { getNullableVal } from '$lib/utils.js';
+	import { currencyFormatter, getNullableVal } from '$lib/utils.js';
 	import {
 		getCoreRowModel,
 		type ColumnDef,
@@ -13,7 +13,7 @@
 	import { writable } from 'svelte/store';
 
 	export let data;
-	type ColumnType = (typeof data.admins.data)[number];
+	type ColumnType = (typeof data.users.data)[number];
 
 	$: currentPageNumber = getNullableVal($page.url.searchParams.get('page'), 1, (x) => parseInt(x));
 	$: pageSize = getNullableVal($page.url.searchParams.get('pageSize'), 10, (x) => parseInt(x));
@@ -24,12 +24,11 @@
 			header: () => null
 		},
 		{
-			accessorFn: (row) => row.id,
+			accessorFn: (row) => row.userId,
 			id: 'id',
 			cell: (info) => info.getValue(),
 			header: () => 'ID'
 		},
-
 		{
 			accessorFn: (row) => row.name,
 			id: 'name',
@@ -43,21 +42,15 @@
 			header: () => 'Email'
 		},
 		{
-			accessorFn: (row) => row.city,
-			id: 'city',
+			accessorFn: (row) => currencyFormatter.format(row.revenue),
+			id: 'revenue',
 			cell: (info) => info.getValue(),
-			header: () => 'City'
-		},
-		{
-			accessorFn: (row) => row.city,
-			id: 'country',
-			cell: (info) => info.getValue(),
-			header: () => 'Country'
+			header: () => 'Revenue'
 		}
 	];
 
 	const options = writable<TableOptions<ColumnType>>({
-		data: data.admins.data,
+		data: data.users.data,
 		columns: defaultColumns,
 		manualSorting: true,
 		getCoreRowModel: getCoreRowModel()
@@ -65,7 +58,7 @@
 	const table = createSvelteTable(options);
 
 	$: {
-		options.update((old) => ({ ...old, data: data.admins.data }));
+		options.update((old) => ({ ...old, data: data.users.data }));
 	}
 
 	function getUrlQueryString({
@@ -86,10 +79,11 @@
 	}
 </script>
 
-<h2 class="h3 font-bold">Admins</h2>
-<h5 class="h6 text-surface-600-300-token mb-5">List of administrators</h5>
-
-{#if data.admins.data.length}
+<h2 class="h3 font-bold">Performance</h2>
+<h5 class="h6 text-surface-600-300-token mb-5">
+	Sales made by affiliates on the year {new Date().getUTCFullYear()}
+</h5>
+{#if data.users.data.length}
 	<div class="mb-3">
 		<div class="table-container">
 			<table class="table table-hover">
@@ -128,7 +122,7 @@
 	</div>
 	<Pagination
 		bind:currentPageNumber
-		maxPage={Math.ceil(data.admins.count / pageSize) || 1}
+		maxPage={Math.ceil(data.users.count / pageSize) || 1}
 		on:change={(e) => {
 			goto(getUrlQueryString({ pageNumber: e.detail }));
 		}}
