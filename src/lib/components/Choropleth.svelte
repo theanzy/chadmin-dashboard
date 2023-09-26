@@ -119,7 +119,6 @@
 			}
 
 			function mouseOver(e) {
-				const [x, y] = d3.pointer(e);
 				d3.selectAll('path.country')
 					.transition()
 					.duration(200)
@@ -128,8 +127,8 @@
 				d3.select(e.target).transition().duration(200).style('opacity', 1).style('stroke', 'black');
 				const data = d3.select(e.target).data()[0];
 				const tooltipText = `${data.properties.name}: ${data.total}`;
-				let xPos = x + 20;
-				let yPos = y + 70;
+				let xPos = e.x;
+				let yPos = e.y;
 				tooltip
 					.style('left', xPos + 'px')
 					.style('top', yPos + 'px')
