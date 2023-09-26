@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { currencyFormatter, unitFormatter } from '$lib/utils.js';
+	import LineChart from '$lib/components/LineChart.svelte';
+	import { currencyFormatter, monthToDate, unitFormatter } from '$lib/utils.js';
 
 	// your script goes here
 	export let data;
@@ -10,7 +11,7 @@
 
 <div class="grid grid-cols-6 grid-rows-6 gap-4">
 	<div
-		class="flex flex-col border border-surface-300-600-token bg-neutral-200 dark:bg-surface-800 shadow-sm p-4 gap-y-4 justify-between rounded"
+		class="flex flex-col border border-surface-300-600-token bg-neutral-200 dark:bg-surface-800 shadow-sm p-4 gap-y-4 justify-between rounded col-span-6 md:col-span-3 xl:col-span-1"
 	>
 		<div class="flex flex-row justify-between items-center text-surface-600-300-token">
 			<p class="text-sm">Total Customers</p>
@@ -43,7 +44,7 @@
 		</div>
 	</div>
 	<div
-		class="flex flex-col border border-surface-300-600-token bg-neutral-200 dark:bg-surface-800 shadow-sm p-4 gap-y-4 justify-between rounded"
+		class="flex flex-col border border-surface-300-600-token bg-neutral-200 dark:bg-surface-800 shadow-sm p-4 gap-y-4 justify-between rounded col-span-6 md:col-span-3 xl:col-span-1"
 	>
 		<div class="flex flex-row justify-between items-center text-surface-600-300-token">
 			<p class="text-sm">Top Sales</p>
@@ -72,7 +73,22 @@
 		</div>
 	</div>
 	<div
-		class="flex flex-col border border-surface-300-600-token bg-neutral-200 dark:bg-surface-800 shadow-sm p-4 gap-y-4 justify-between rounded"
+		class="flex flex-col border border-surface-300-600-token bg-neutral-200 dark:bg-surface-800 shadow-sm p-4 gap-y-4 justify-between rounded col-span-6 xl:col-span-4 row-span-2"
+	>
+		<p class="text-sm text-surface-600-300-token">Sales Overview</p>
+		<LineChart
+			enableArea={true}
+			dataset={data.cumulativeSales.map((d) => ({ x: monthToDate(d.month), y: d.totalRevenue }))}
+			tooltipValueGetter={(d) => {
+				return {
+					x: d.x.toLocaleString('default', { month: 'long' }),
+					y: currencyFormatter.format(d.y)
+				};
+			}}
+		/>
+	</div>
+	<div
+		class="flex flex-col border border-surface-300-600-token bg-neutral-200 dark:bg-surface-800 shadow-sm p-4 gap-y-4 justify-between rounded col-span-6 md:col-span-3 xl:col-span-1"
 	>
 		<div class="flex flex-row justify-between items-center text-surface-600-300-token">
 			<p class="text-sm">Monthly Sales</p>
@@ -109,7 +125,7 @@
 		</div>
 	</div>
 	<div
-		class="flex flex-col border border-surface-300-600-token bg-neutral-200 dark:bg-surface-800 shadow-sm p-4 gap-y-4 justify-between rounded"
+		class="flex flex-col border border-surface-300-600-token bg-neutral-200 dark:bg-surface-800 shadow-sm p-4 gap-y-4 justify-between rounded col-span-6 md:col-span-3 xl:col-span-1"
 	>
 		<div class="flex flex-row justify-between items-center text-surface-600-300-token">
 			<p class="text-sm">Top Market</p>
