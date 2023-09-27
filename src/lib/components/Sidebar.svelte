@@ -88,7 +88,6 @@
 
 <svelte:window
 	on:keydown={(e) => {
-		console.log(window.innerWidth);
 		if (window.innerWidth > 768) {
 			return;
 		}

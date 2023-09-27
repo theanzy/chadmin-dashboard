@@ -19,112 +19,16 @@
 	import ToggleSortButton from '$lib/components/ToggleSortButton.svelte';
 	import Filter from '$lib/components/icons/Filter.svelte';
 	import ClearFilterIcon from '$lib/components/icons/ClearFilterIcon.svelte';
+	import Table from '$lib/components/Table.svelte';
 
 	export let data;
 	const modalStore = getModalStore();
 
-	type ColumnType = (typeof data.transactions.data)[number];
-	const defaultColumns: ColumnDef<ColumnType>[] = [
-		{
-			id: 'expander',
-			header: () => null,
-			cell: ({ row }) => {
-				return flexRender(ExpandButton, {
-					onclick: row.getToggleExpandedHandler(),
-					isExpanded: row.getIsExpanded()
-				});
-			}
-		},
-		{
-			accessorFn: (row) => row.transactionId,
-			id: 'id',
-			cell: (info) => info.getValue(),
-			header: () => 'ID'
-		},
-		{
-			accessorFn: (row) => formatDate(row.createdAt),
-			id: 'date',
-			cell: (info) => info.getValue(),
-			header: () => 'Date',
-			enableSorting: true
-		},
-		{
-			accessorFn: (row) => row.customer,
-			id: 'customer',
-			cell: (info) => info.getValue(),
-			header: () => 'Customer',
-			maxSize: 10
-		},
-		{
-			accessorFn: (row) => row.affiliate,
-			id: 'affiliate',
-			cell: (info) => info.getValue(),
-			header: () => 'Affiliate',
-			maxSize: 10
-		},
-		{
-			accessorFn: (row) => currencyFormatter.format(row.amount),
-			id: 'amount',
-			enableSorting: true,
-			cell: (info) => info.getValue(),
-			header: () => 'Amount'
-		}
-	];
-
-	const options = writable<TableOptions<ColumnType>>({
-		data: data.transactions.data,
-		columns: defaultColumns,
-		manualSorting: true,
-		getRowCanExpand: () => true,
-		getCoreRowModel: getCoreRowModel(),
-		getExpandedRowModel: getExpandedRowModel()
-	});
-
-	function getToggledSorting(sortBy: string, orderBy: false | SortDirection) {
-		return {
-			sortBy,
-			orderBy: orderBy === 'desc' ? 'asc' : 'desc'
-		};
-	}
-
-	$: {
-		const sortBy = getNullableVal($page.url.searchParams.get('sort_by'), undefined);
-		const orderBy = getNullableVal($page.url.searchParams.get('order_by'), undefined);
-
-		if (sortBy && orderBy) {
-			options.update((old) => {
-				return {
-					...old,
-					state: {
-						...old.state,
-						sorting: [{ id: sortBy, desc: orderBy === 'desc' }]
-					}
-				};
-			});
-		} else {
-			options.update((old) => {
-				return {
-					...old,
-					state: {
-						...old.state,
-						sorting: []
-					}
-				};
-			});
-		}
-	}
-
-	const table = createSvelteTable(options);
+	$: sortBy = getNullableVal($page.url.searchParams.get('sort_by'), undefined);
+	$: orderBy = getNullableVal($page.url.searchParams.get('order_by'), undefined);
 
 	$: currentPageNumber = getNullableVal($page.url.searchParams.get('page'), 1, (x) => parseInt(x));
 	$: pageSize = getNullableVal($page.url.searchParams.get('pageSize'), 10, (x) => parseInt(x));
-
-	$: {
-		$table.setPageIndex(currentPageNumber - 1);
-	}
-	$: {
-		options.update((old) => ({ ...old, data: data.transactions.data }));
-	}
 
 	function getUrlQueryString({
 		pageNumber,
@@ -174,93 +78,99 @@
 </div>
 {#if data.transactions.data.length}
 	<div class="mb-3">
-		<div class="table-container">
-			<table class="table table-hover">
-				<thead class="text-sm">
-					{#each $table.getHeaderGroups() as headerGroup}
-						<tr>
-							{#each headerGroup.headers as header}
-								<th class="group relative">
-									{#if !header.isPlaceholder}
-										{#if header.column.columnDef.enableSorting}
-											<ToggleSortButton
-												sortOrder={header.column.getIsSorted() || null}
-												on:click={() => {
-													if (header.column.columnDef.id) {
-														goto(
-															getUrlQueryString({
-																pageNumber: 1,
-																sorting: getToggledSorting(
-																	header.column.columnDef.id,
-																	header.column.getIsSorted()
-																)
-															})
-														);
-													}
-												}}
-											>
-												<svelte:component
-													this={flexRender(header.column.columnDef.header, header.getContext())}
-												/>
-											</ToggleSortButton>
-										{:else}
-											<svelte:component
-												this={flexRender(header.column.columnDef.header, header.getContext())}
-											/>
-										{/if}
-									{/if}
-								</th>
-							{/each}
-						</tr>
-					{/each}
-				</thead>
-				<tbody>
-					{#each $table.getRowModel().rows as row}
-						<tr>
-							{#each row.getVisibleCells() as cell}
-								{#if cell.column.columnDef.cell}
-									<td>
-										<svelte:component
-											this={flexRender(cell.column.columnDef.cell, cell.getContext())}
-										/>
-									</td>
-								{/if}
-							{/each}
-						</tr>
-						{#if row.getIsExpanded()}
-							<tr class="!bg-surface-200-700-token">
-								<td colSpan={row.getVisibleCells().length} class="table-container">
-									{#if row.original.products.length}
-										<h6 class="h6 font-semibold">Details</h6>
-										<p class="mb-2 text-surface-600-300-token">Products sold in this transaction</p>
-										<table class="table-compact">
-											<thead>
-												<tr>
-													<th>ID</th>
-													<th>Name</th>
-													<th>Quantity</th>
-													<th>Price</th>
-												</tr>
-											</thead>
-											<tbody class="!text-xs">
-												{#each row.original.products as product}
-													<tr class="!bg-surface-200-700-token">
-														<td>{product.id}</td>
-														<td>{product.name}</td>
-														<td>{product.quantity}</td>
-														<td>{currencyFormatter.format(product.price)}</td></tr
-													>
-												{/each}
-											</tbody>
-										</table>
-									{/if}
-								</td>
+		<Table
+			data={data.transactions.data}
+			rowCanExpand={true}
+			columns={[
+				{
+					id: 'expander',
+					header: () => null,
+					cell: ({ row }) => {
+						return flexRender(ExpandButton, {
+							onclick: row.getToggleExpandedHandler(),
+							isExpanded: row.getIsExpanded()
+						});
+					}
+				},
+				{
+					accessorFn: (row) => row.transactionId,
+					id: 'id',
+					cell: (info) => info.getValue(),
+					header: () => 'ID'
+				},
+				{
+					accessorFn: (row) => formatDate(row.createdAt),
+					id: 'date',
+					cell: (info) => info.getValue(),
+					header: () => 'Date',
+					enableSorting: true
+				},
+				{
+					accessorFn: (row) => row.customer,
+					id: 'customer',
+					cell: (info) => info.getValue(),
+					header: () => 'Customer',
+					maxSize: 10
+				},
+				{
+					accessorFn: (row) => row.affiliate,
+					id: 'affiliate',
+					cell: (info) => info.getValue(),
+					header: () => 'Affiliate',
+					maxSize: 10
+				},
+				{
+					accessorFn: (row) => currencyFormatter.format(row.amount),
+					id: 'amount',
+					enableSorting: true,
+					cell: (info) => info.getValue(),
+					header: () => 'Amount'
+				}
+			]}
+			sort={{
+				sortBy: sortBy,
+				orderBy: orderBy
+			}}
+			on:sort={(e) => {
+				goto(
+					getUrlQueryString({
+						pageNumber: 1,
+						sorting: {
+							orderBy: e.detail.direction,
+							sortBy: e.detail.column
+						}
+					})
+				);
+			}}
+		>
+			<div slot="expandedRow" let:item>
+				{#if item.products.length}
+					<h6 class="h6 font-semibold">Details</h6>
+					<p class="mb-2 text-surface-600-300-token">Products sold in this transaction</p>
+					<table class="table-compact">
+						<thead>
+							<tr>
+								<th>ID</th>
+								<th>Name</th>
+								<th>Quantity</th>
+								<th>Price</th>
 							</tr>
-						{/if}
-					{/each}
-				</tbody>
-			</table>
-		</div>
+						</thead>
+						<tbody class="!text-xs">
+							{#each item.products as product}
+								<tr class="!bg-surface-200-700-token">
+									<td>{product.id}</td>
+									<td>{product.name}</td>
+									<td>{product.quantity}</td>
+									<td>{currencyFormatter.format(product.price)}</td></tr
+								>
+							{/each}
+						</tbody>
+					</table>
+				{/if}
+			</div>
+		</Table>
+		<p class="p-7" />
 	</div>
 	<Pagination
 		bind:currentPageNumber
