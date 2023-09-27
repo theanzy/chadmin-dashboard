@@ -1,6 +1,8 @@
 <script lang="ts">
+	import DonutChart from '$lib/components/DonutChart.svelte';
 	import LineChart from '$lib/components/LineChart.svelte';
-	import { currencyFormatter, monthToDate, unitFormatter } from '$lib/utils.js';
+	import Table from '$lib/components/Table.svelte';
+	import { currencyFormatter, formatDate, monthToDate, unitFormatter } from '$lib/utils.js';
 
 	// your script goes here
 	export let data;
@@ -11,7 +13,7 @@
 
 <div class="grid grid-cols-6 grid-rows-6 gap-4">
 	<div
-		class="flex flex-col border border-surface-300-600-token bg-neutral-200 dark:bg-surface-800 shadow-sm p-4 gap-y-4 justify-between rounded col-span-6 md:col-span-3 xl:col-span-1"
+		class="flex flex-col border border-surface-300-600-token bg-neutral-200 dark:bg-surface-800 shadow-sm p-4 gap-y-4 justify-between rounded col-span-6 md:col-span-3 xl:col-span-1 row-span-1"
 	>
 		<div class="flex flex-row justify-between items-center text-surface-600-300-token">
 			<p class="text-sm">Total Customers</p>
@@ -44,7 +46,7 @@
 		</div>
 	</div>
 	<div
-		class="flex flex-col border border-surface-300-600-token bg-neutral-200 dark:bg-surface-800 shadow-sm p-4 gap-y-4 justify-between rounded col-span-6 md:col-span-3 xl:col-span-1"
+		class="flex flex-col border border-surface-300-600-token bg-neutral-200 dark:bg-surface-800 shadow-sm p-4 gap-y-4 justify-between rounded col-span-6 md:col-span-3 xl:col-span-1 row-span-1"
 	>
 		<div class="flex flex-row justify-between items-center text-surface-600-300-token">
 			<p class="text-sm">Top Sales</p>
@@ -73,7 +75,7 @@
 		</div>
 	</div>
 	<div
-		class="flex flex-col border border-surface-300-600-token bg-neutral-200 dark:bg-surface-800 shadow-sm p-4 gap-y-4 justify-between rounded col-span-6 xl:col-span-4 row-span-2"
+		class="flex flex-col border border-surface-300-600-token bg-neutral-200 dark:bg-surface-800 shadow-sm p-4 gap-y-4 justify-between rounded col-span-6 xl:col-span-4 row-span-2 xl:row-span-2"
 	>
 		<p class="text-sm text-surface-600-300-token">Sales Overview</p>
 		<LineChart
@@ -88,7 +90,7 @@
 		/>
 	</div>
 	<div
-		class="flex flex-col border border-surface-300-600-token bg-neutral-200 dark:bg-surface-800 shadow-sm p-4 gap-y-4 justify-between rounded col-span-6 md:col-span-3 xl:col-span-1"
+		class="flex flex-col border border-surface-300-600-token bg-neutral-200 dark:bg-surface-800 shadow-sm p-4 gap-y-4 justify-between rounded col-span-6 md:col-span-3 xl:col-span-1 row-span-1"
 	>
 		<div class="flex flex-row justify-between items-center text-surface-600-300-token">
 			<p class="text-sm">Monthly Sales</p>
@@ -125,7 +127,7 @@
 		</div>
 	</div>
 	<div
-		class="flex flex-col border border-surface-300-600-token bg-neutral-200 dark:bg-surface-800 shadow-sm p-4 gap-y-4 justify-between rounded col-span-6 md:col-span-3 xl:col-span-1"
+		class="flex flex-col border border-surface-300-600-token bg-neutral-200 dark:bg-surface-800 shadow-sm p-4 gap-y-4 justify-between rounded col-span-6 md:col-span-3 xl:col-span-1 row-span-1"
 	>
 		<div class="flex flex-row justify-between items-center text-surface-600-300-token">
 			<p class="text-sm">Top Market</p>
@@ -163,5 +165,56 @@
 			</p>
 			<p>This month</p>
 		</div>
+	</div>
+	<div
+		class="flex flex-col border border-surface-300-600-token bg-neutral-200 dark:bg-surface-800 shadow-sm p-4 gap-y-4 justify-between rounded col-span-6 xl:col-span-4 row-span-3"
+	>
+		<p class="text-surface-600-300-token text-sm">Transactions</p>
+		<Table
+			data={data.transactions.data}
+			columns={[
+				{
+					accessorFn: (row) => row.transactionId,
+					id: 'id',
+					cell: (info) => info.getValue(),
+					header: () => 'ID'
+				},
+				{
+					accessorFn: (row) => formatDate(row.createdAt),
+					id: 'date',
+					cell: (info) => info.getValue(),
+					header: () => 'Date',
+					enableSorting: true
+				},
+				{
+					accessorFn: (row) => row.customer,
+					id: 'customer',
+					cell: (info) => info.getValue(),
+					header: () => 'Customer',
+					maxSize: 10
+				},
+				{
+					accessorFn: (row) => row.affiliate,
+					id: 'affiliate',
+					cell: (info) => info.getValue(),
+					header: () => 'Affiliate',
+					maxSize: 10
+				},
+				{
+					accessorFn: (row) => currencyFormatter.format(row.amount),
+					id: 'amount',
+					enableSorting: true,
+					cell: (info) => info.getValue(),
+					header: () => 'Amount'
+				}
+			]}
+		/>
+	</div>
+	<div
+		class="flex flex-col border border-surface-300-600-token bg-neutral-200 dark:bg-surface-800 shadow-sm p-4 gap-y-4 justify-between rounded col-span-6 xl:col-span-2 row-span-3 xl:row-span-3 min-h-[300px]"
+	>
+		<DonutChart
+			dataset={data.breakdown.map((d) => ({ label: d.category, value: d.totalRevenue + 20 }))}
+		/>
 	</div>
 </div>

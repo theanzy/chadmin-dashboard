@@ -1,4 +1,4 @@
-import { getCumulativeSales } from '$lib/server/queries';
+import { getCumulativeSales } from '$lib/server/query';
 
 export async function load() {
 	return {

@@ -1,4 +1,4 @@
-import { getCumulativeSales } from '$lib/server/queries';
+import { getCumulativeSales, getSalesByCategory, getTransactions } from '$lib/server/query';
 import { db } from '$lib/db';
 import { and, desc, eq, inArray, or, sql } from 'drizzle-orm';
 import { products, productsTransactions, transactions, users } from '../schema';
@@ -185,6 +185,8 @@ export async function load({ fetch }) {
 		topSales: topSalesPerson(year, month),
 		monthlySales: monthlySales(year, month),
 		topSalesCountry: topSalesCountry(year, month, topo),
-		cumulativeSales: getCumulativeSales(year)
+		cumulativeSales: getCumulativeSales(year),
+		breakdown: getSalesByCategory(year),
+		transactions: getTransactions(0, 10)
 	};
 }
