@@ -1,6 +1,7 @@
-import { integer, pgTable, smallint, varchar } from 'drizzle-orm/pg-core';
+import { integer, smallint, varchar } from 'drizzle-orm/pg-core';
+import { mySchema } from './myschema';
 
-export const products = pgTable('products', {
+export const products = mySchema.table('products', {
 	id: integer('id').primaryKey(),
 	name: varchar('name', { length: 256 }).notNull(),
 	price: integer('price').notNull(),

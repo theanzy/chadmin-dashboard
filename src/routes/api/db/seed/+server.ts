@@ -5,16 +5,51 @@ import { products } from '../../../../schema/products';
 import { transactions } from '../../../../schema/transactions';
 import { productsTransactions } from '../../../../schema/product_transaction';
 
-const MAX_CUSTOMERS = 500;
-const MAX_SALES_AFFILIATE = 150;
-const MAX_ADMINS = 50;
+const MAX_CUSTOMERS = 300;
+const MAX_SALES_AFFILIATE = 50;
+const MAX_ADMINS = 20;
 
-const MAX_PRODUCTS = 200;
+const MAX_PRODUCTS = 50;
 const categories = ['shoes', 'clothing', 'accessories', 'misc'];
+
+const LIMITED_COUNTRIES = [
+	'AUS',
+	'AUT',
+	'BEL',
+	'BRA',
+	'CHL',
+	'CHN',
+	'HRV',
+	'EGY',
+	'FJI',
+	'FRA',
+	'DEU',
+	'HKG',
+	'IND',
+	'IDN',
+	'ITA',
+	'JPN',
+	'KOR',
+	'MYS',
+	'MEX',
+	'NZL',
+	'PRT',
+	'POL',
+	'ROU',
+	'QAT',
+	'SAU',
+	'SGP',
+	'ESP',
+	'CHE',
+	'TWN',
+	'THA',
+	'GBR',
+	'USA'
+];
 
 export async function POST() {
 	const startDate = new Date(Date.UTC(2022, 0, 1));
-	const endDate = new Date();
+	const endDate = new Date(Date.UTC(2024, 0, 1));
 	endDate.setUTCHours(23);
 	endDate.setUTCMinutes(0);
 	endDate.setUTCSeconds(1);
@@ -41,7 +76,7 @@ export async function POST() {
 					continue;
 				}
 				productIds.add(p.id);
-				const quantity = randomInt(1, 50);
+				const quantity = randomInt(1, 10);
 				result.push({
 					transactionId,
 					quantity,
@@ -56,7 +91,7 @@ export async function POST() {
 		const result: ReturnType<typeof generateTransaction>[] = [];
 		let transactionId = 0;
 		for (let d = start; d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
-			const count = randomInt(1, 10);
+			const count = randomInt(1, 5);
 			for (let i = 0; i < count; i++) {
 				transactionId += 1;
 				result.push(generateTransaction(transactionId, new Date(d)));
@@ -87,12 +122,16 @@ export async function POST() {
 		const lastName = faker.person.lastName();
 		const fullName = `${firstName} ${lastName}`;
 		const email = `${firstName}.${lastName}@chad.min`;
+		let country = faker.location.countryCode('alpha-3');
+		if (!LIMITED_COUNTRIES.includes(country)) {
+			country = chooseRandom(['CHN', 'USA', 'JPN', 'GBR']);
+		}
 		return {
 			id: id,
 			name: fullName,
 			email,
 			city: faker.location.city(),
-			country: faker.location.countryCode('alpha-3'),
+			country: country,
 			role: role,
 			createdAt: new Date(Date.UTC(2022, 0, 1))
 		};
@@ -108,7 +147,7 @@ export async function POST() {
 
 	function generateProduct(id: number) {
 		const name = faker.commerce.productName();
-		const price = randomInt(50, 3000) * 100;
+		const price = randomInt(50, 300) * 100;
 		const description = faker.commerce.productDescription();
 		const category = categories[randomInt(0, categories.length - 1)];
 		const rating = randomInt(1, 10);
@@ -133,4 +172,9 @@ export async function POST() {
 	}
 	await seedDb();
 	return new Response('OK', { status: 200 });
+}
+
+function chooseRandom(arr: Array<string>) {
+	const idx = Math.floor(Math.random() * arr.length);
+	return arr[idx];
 }

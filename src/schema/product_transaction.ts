@@ -1,8 +1,9 @@
+import { mySchema } from './myschema';
 import { products } from './products';
 import { transactions } from './transactions';
-import { integer, pgTable, primaryKey } from 'drizzle-orm/pg-core';
+import { integer, primaryKey } from 'drizzle-orm/pg-core';
 
-export const productsTransactions = pgTable(
+export const productsTransactions = mySchema.table(
 	'products_transactions',
 	{
 		transactionId: integer('transaction_id')

@@ -1,6 +1,7 @@
-import { integer, pgTable, timestamp, varchar } from 'drizzle-orm/pg-core';
+import { integer, timestamp, varchar } from 'drizzle-orm/pg-core';
+import { mySchema } from './myschema';
 
-export const users = pgTable('users', {
+export const users = mySchema.table('users', {
 	id: integer('id').primaryKey(),
 	name: varchar('name', { length: 256 }).notNull(),
 	email: varchar('email', { length: 256 }).notNull(),

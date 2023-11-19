@@ -36,8 +36,14 @@ async function getTotalCustomers(year: number, month: number) {
 				)
 			);
 		});
+	if (!data.length) {
+		return {
+			totalCustomers: 0,
+			changePercentage: 0
+		};
+	}
 	const end = data[0].count;
-	const start = data[1].count;
+	const start = data[1]?.count || 0;
 	const changePercentage = Math.round(((end - start) / end) * 100);
 	return {
 		totalCustomers: end,

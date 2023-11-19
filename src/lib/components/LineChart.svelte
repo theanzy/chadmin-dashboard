@@ -78,7 +78,10 @@
 				.append('svg')
 				.attr('width', width + margin.left + margin.right)
 				.attr('height', height + margin.top + margin.bottom);
-			const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+			const g = svg
+				.append('g')
+				.attr('transform', `translate(${margin.left},${margin.top})`)
+				.attr('class', 'graph');
 
 			if (enableArea) {
 				g.append('path')
@@ -99,15 +102,8 @@
 			// Add the line path to the SVG element
 			g.selectAll('lines').data(dataset, key).join('path').attr('class', 'lines');
 
-			// Add the circles
-			g.selectAll('myCircles')
-				.data(dataset, key)
-				.join('circle')
-				.attr('class', 'circles')
-				.attr('cx', (d) => {
-					return xScale(d.x);
-				})
-				.attr('cy', (d) => yScale(d.y));
+			// // Add the circles
+			console.log(dataset, 'redraw');
 
 			// Add a circle element
 			tooltipCircle = g
@@ -204,10 +200,13 @@
 				.attr('stroke-width', 1)
 				.attr('d', lineFn);
 			// circles
-			d3.selectAll('circle.circles')
+			console.log(d3.select('.graph'));
+			d3.selectAll('circle.circles').remove();
+			d3.select('.graph')
+				.selectAll('myCircles')
 				.data(dataset, key)
-				.transition()
-				.duration(1000)
+				.join('circle')
+				.attr('class', 'circles')
 				.attr('cx', (d) => {
 					return xScale(d.x);
 				})

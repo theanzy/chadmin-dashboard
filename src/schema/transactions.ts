@@ -1,7 +1,8 @@
-import { integer, pgTable, timestamp } from 'drizzle-orm/pg-core';
+import { integer, timestamp } from 'drizzle-orm/pg-core';
 import { users } from './users';
+import { mySchema } from './myschema';
 
-export const transactions = pgTable('transactions', {
+export const transactions = mySchema.table('transactions', {
 	id: integer('id').primaryKey().notNull(),
 	affiliateId: integer('affiliate_id')
 		.references(() => users.id)
