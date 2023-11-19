@@ -7,7 +7,7 @@
 	const isSidebarShown = getSidebarShown();
 </script>
 
-<nav class="border-b border-1 border-surface-200 dark:border-surface-500">
+<nav class="border-b border-1 border-surface-200 dark:border-surface-500 py-2 px-1">
 	<div class="flex flex-row gap-5 items-center px-2 py-1">
 		<div class="flex flex-row gap-1 items-center flex-1 md:flex-0">
 			<button
