@@ -16,6 +16,12 @@
 	function loadInitialClassState() {
 		const classList = document.documentElement.classList;
 		const modeCurrent = localStorage.getItem('modeCurrent');
+		if (!modeCurrent) {
+			if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+				classList.add('dark');
+			}
+			return;
+		}
 		if (modeCurrent === 'false') {
 			classList.add('dark');
 		} else {
