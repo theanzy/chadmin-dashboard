@@ -59,33 +59,30 @@
 
 <h2 class="h3 font-bold">Daily Sales</h2>
 <h5 class="h6 text-surface-600-300-token mb-5">Sales made on each day</h5>
-
+<div class="flex flex-row w-full pr-8 justify-between">
+	<ComboBox
+		bind:value={dailyType}
+		name={'monthlyType'}
+		options={[
+			{
+				label: 'Revenue',
+				value: 'revenue'
+			},
+			{
+				label: 'Units',
+				value: 'unit'
+			}
+		]}
+	/>
+	<button
+		use:createCalendar
+		class="flex justify-start items-center gap-1 btn btn-sm border border-neutral-400 dark:border-neutral-700 text-sm w-64"
+	>
+		<CalendarMonth class="w-4 h-4 text-surface-700-200-token" />
+		<time class="text-surface-700-200-token">{formatDate(startDate)} to {formatDate(endDate)}</time>
+	</button>
+</div>
 {#if data.dailySales.length}
-	<div class="flex flex-row w-full pr-8 justify-between">
-		<ComboBox
-			bind:value={dailyType}
-			name={'monthlyType'}
-			options={[
-				{
-					label: 'Revenue',
-					value: 'revenue'
-				},
-				{
-					label: 'Units',
-					value: 'unit'
-				}
-			]}
-		/>
-		<button
-			use:createCalendar
-			class="flex justify-start items-center gap-1 btn btn-sm border border-neutral-400 dark:border-neutral-700 text-sm w-64"
-		>
-			<CalendarMonth class="w-4 h-4 text-surface-700-200-token" />
-			<time class="text-surface-700-200-token"
-				>{formatDate(startDate)} to {formatDate(endDate)}</time
-			>
-		</button>
-	</div>
 	<div class="h-[50vh] w-full">
 		<LineChart
 			{dataset}
@@ -98,7 +95,5 @@
 		/>
 	</div>
 {:else}
-	<div class="h-full text-error-500-400-token flex flex-col justify-center">
-		<p class="text-center">Data is not available</p>
-	</div>
+	<p class="text-center my-20 text-rose-600">Data is not available</p>
 {/if}

@@ -1,3 +1,4 @@
+import { NODE_ENV } from '$env/static/private';
 import { faker } from '@faker-js/faker';
 import { db } from '$lib/db';
 import { users } from '../../../../schema/users';
@@ -48,6 +49,11 @@ const LIMITED_COUNTRIES = [
 ];
 
 export async function POST() {
+	if (NODE_ENV !== 'development') {
+		return new Response('Bad Request', {
+			status: 400
+		});
+	}
 	const startDate = new Date(Date.UTC(2022, 0, 1));
 	const endDate = new Date(Date.UTC(2024, 0, 1));
 	endDate.setUTCHours(23);
