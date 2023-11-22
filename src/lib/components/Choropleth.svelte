@@ -135,6 +135,7 @@
 					.transition()
 					.duration(400)
 					.style('opacity', 1)
+					.style('pointer-events', 'none')
 					.text(tooltipText);
 			}
 
