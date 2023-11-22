@@ -187,12 +187,14 @@ export async function load({ fetch }) {
 	const year = today.getUTCFullYear();
 	const month = today.getUTCMonth() + 1;
 	return {
-		customers: getTotalCustomers(year, month),
-		topSales: topSalesPerson(year, month),
-		monthlySales: monthlySales(year, month),
-		topSalesCountry: topSalesCountry(year, month, topo),
-		cumulativeSales: getCumulativeSales(year),
-		breakdown: getSalesByCategory(year),
-		transactions: getTransactions(0, 10)
+		streamed: {
+			customers: getTotalCustomers(year, month),
+			topSales: topSalesPerson(year, month),
+			monthlySales: monthlySales(year, month),
+			topSalesCountry: topSalesCountry(year, month, topo),
+			cumulativeSales: getCumulativeSales(year),
+			breakdown: getSalesByCategory(year),
+			transactions: getTransactions(0, 10)
+		}
 	};
 }

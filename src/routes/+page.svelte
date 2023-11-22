@@ -29,21 +29,23 @@
 				/></svg
 			>
 		</div>
-		<p class="font-bold text-2xl dark:text-tertiary-700 text-tertiary-600">
-			{unitFormatter.format(data.customers.totalCustomers)}
-		</p>
-		<div class="flex justify-between items-center text-sm text-surface-600-300-token">
-			<p
-				class={data.customers.changePercentage > 0
-					? 'dark:text-tertiary-900-300-token'
-					: 'text-red-700 text-tertiary-600'}
-			>
-				{data.customers.changePercentage > 0
-					? `+${data.customers.changePercentage}%`
-					: `${data.customers.changePercentage}%`}
+		{#await data.streamed.customers then customers}
+			<p class="font-bold text-2xl dark:text-tertiary-700 text-tertiary-600">
+				{unitFormatter.format(customers.totalCustomers)}
 			</p>
-			<p>Since last month</p>
-		</div>
+			<div class="flex justify-between items-center text-sm text-surface-600-300-token">
+				<p
+					class={customers.changePercentage > 0
+						? 'dark:text-tertiary-900-300-token'
+						: 'text-tertiary-600'}
+				>
+					{customers.changePercentage > 0
+						? `+${customers.changePercentage}%`
+						: `${customers.changePercentage}%`}
+				</p>
+				<p>Since last month</p>
+			</div>
+		{/await}
 	</div>
 	<div
 		class="flex flex-col border border-surface-300-600-token bg-neutral-200 dark:bg-surface-800 shadow-sm p-4 gap-y-4 justify-between rounded col-span-6 md:col-span-3 xl:col-span-1 row-span-1"
@@ -62,32 +64,38 @@
 				/></svg
 			>
 		</div>
-		<div class=" dark:text-tertiary-700 text-tertiary-600">
-			<p class="font-bold text-2xl">
-				{data.topSales.name}
-			</p>
-		</div>
-		<div class="flex justify-between items-center text-sm text-surface-600-300-token">
-			<p class="text-tertiary-700-200-token">
-				{currencyFormatter.format(data.topSales.salesMade)}
-			</p>
-			<p>This month</p>
-		</div>
+		{#await data.streamed.topSales then topSales}
+			<div class=" dark:text-tertiary-700 text-tertiary-600">
+				<p class="font-bold text-2xl">
+					{topSales.name}
+				</p>
+			</div>
+			<div class="flex justify-between items-center text-sm text-surface-600-300-token">
+				<p class="text-tertiary-700-200-token">
+					{currencyFormatter.format(topSales.salesMade)}
+				</p>
+				<p>This month</p>
+			</div>
+		{/await}
 	</div>
 	<div
 		class="flex flex-col border border-surface-300-600-token bg-neutral-200 dark:bg-surface-800 shadow-sm p-4 gap-y-4 justify-between rounded col-span-6 xl:col-span-4 row-span-2 xl:row-span-2"
 	>
 		<p class="text-sm text-surface-600-300-token">Sales Overview</p>
-		<LineChart
-			enableArea={true}
-			dataset={data.cumulativeSales.map((d) => ({ x: monthToDate(d.month), y: d.totalRevenue }))}
-			tooltipValueGetter={(d) => {
-				return {
-					x: d.x.toLocaleString('default', { month: 'long' }),
-					y: currencyFormatter.format(d.y)
-				};
-			}}
-		/>
+		{#await data.streamed.cumulativeSales}
+			<!-- promise is pending -->
+		{:then cumulativeSales}
+			<LineChart
+				enableArea={true}
+				dataset={cumulativeSales.map((d) => ({ x: monthToDate(d.month), y: d.totalRevenue }))}
+				tooltipValueGetter={(d) => {
+					return {
+						x: d.x.toLocaleString('default', { month: 'long' }),
+						y: currencyFormatter.format(d.y)
+					};
+				}}
+			/>
+		{/await}
 	</div>
 	<div
 		class="flex flex-col border border-surface-300-600-token bg-neutral-200 dark:bg-surface-800 shadow-sm p-4 gap-y-4 justify-between rounded col-span-6 md:col-span-3 xl:col-span-1 row-span-1"
@@ -108,23 +116,27 @@
 				></svg
 			>
 		</div>
-		<div class="dark:text-tertiary-700 text-tertiary-600">
-			<p class="font-bold text-2xl">
-				{currencyFormatter.format(data.monthlySales.salesMade)}
-			</p>
-		</div>
-		<div class="flex justify-between items-center text-sm text-surface-600-300-token">
-			<p
-				class={data.monthlySales.changePercentage > 0
-					? 'dark:text-tertiary-900-300-t7ke text-tertiary-600n'
-					: 'text-red-600'}
-			>
-				{data.monthlySales.changePercentage > 0
-					? `+${data.monthlySales.changePercentage}%`
-					: `${data.monthlySales.changePercentage}%`}
-			</p>
-			<p>Since last month</p>
-		</div>
+		{#await data.streamed.monthlySales}
+			<!-- promise is pending -->
+		{:then monthlySales}
+			<div class="dark:text-tertiary-700 text-tertiary-600">
+				<p class="font-bold text-2xl">
+					{currencyFormatter.format(monthlySales.salesMade)}
+				</p>
+			</div>
+			<div class="flex justify-between items-center text-sm text-surface-600-300-token">
+				<p
+					class={monthlySales.changePercentage > 0
+						? 'dark:text-tertiary-900-300-t7ke text-tertiary-600n'
+						: 'text-red-600'}
+				>
+					{monthlySales.changePercentage > 0
+						? `+${monthlySales.changePercentage}%`
+						: `${monthlySales.changePercentage}%`}
+				</p>
+				<p>Since last month</p>
+			</div>
+		{/await}
 	</div>
 	<div
 		class="flex flex-col border border-surface-300-600-token bg-neutral-200 dark:bg-surface-800 shadow-sm p-4 gap-y-4 justify-between rounded col-span-6 md:col-span-3 xl:col-span-1 row-span-1"
@@ -154,67 +166,79 @@
 				></svg
 			>
 		</div>
-		<div class="dark:text-tertiary-700 text-tertiary-600">
-			<p class="font-bold text-2xl">
-				{data.topSalesCountry.country}
-			</p>
-		</div>
-		<div class="flex justify-between items-center text-sm text-surface-600-300-token">
-			<p class="text-tertiary-700-200-token">
-				{currencyFormatter.format(data.topSalesCountry.revenue)}
-			</p>
-			<p>This month</p>
-		</div>
+		{#await data.streamed.topSalesCountry}
+			<!-- promise is pending -->
+		{:then topSalesCountry}
+			<div class="dark:text-tertiary-700 text-tertiary-600">
+				<p class="font-bold text-2xl">
+					{topSalesCountry.country}
+				</p>
+			</div>
+			<div class="flex justify-between items-center text-sm text-surface-600-300-token">
+				<p class="text-tertiary-700-200-token">
+					{currencyFormatter.format(topSalesCountry.revenue)}
+				</p>
+				<p>This month</p>
+			</div>
+		{/await}
 	</div>
 	<div
 		class="flex flex-col border border-surface-300-600-token bg-neutral-200 dark:bg-surface-800 shadow-sm p-4 gap-y-4 justify-between rounded col-span-6 xl:col-span-4 row-span-3"
 	>
 		<p class="text-surface-600-300-token text-sm">Transactions</p>
-		<Table
-			data={data.transactions.data}
-			columns={[
-				{
-					accessorFn: (row) => row.transactionId,
-					id: 'id',
-					cell: (info) => info.getValue(),
-					header: () => 'ID'
-				},
-				{
-					accessorFn: (row) => formatDate(row.createdAt),
-					id: 'date',
-					cell: (info) => info.getValue(),
-					header: () => 'Date',
-					enableSorting: true
-				},
-				{
-					accessorFn: (row) => row.customer,
-					id: 'customer',
-					cell: (info) => info.getValue(),
-					header: () => 'Customer',
-					maxSize: 10
-				},
-				{
-					accessorFn: (row) => row.affiliate,
-					id: 'affiliate',
-					cell: (info) => info.getValue(),
-					header: () => 'Affiliate',
-					maxSize: 10
-				},
-				{
-					accessorFn: (row) => currencyFormatter.format(row.amount),
-					id: 'amount',
-					enableSorting: true,
-					cell: (info) => info.getValue(),
-					header: () => 'Amount'
-				}
-			]}
-		/>
+		{#await data.streamed.transactions}
+			<!-- promise is pending -->
+		{:then transactions}
+			<Table
+				data={transactions.data}
+				columns={[
+					{
+						accessorFn: (row) => row.transactionId,
+						id: 'id',
+						cell: (info) => info.getValue(),
+						header: () => 'ID'
+					},
+					{
+						accessorFn: (row) => formatDate(row.createdAt),
+						id: 'date',
+						cell: (info) => info.getValue(),
+						header: () => 'Date',
+						enableSorting: true
+					},
+					{
+						accessorFn: (row) => row.customer,
+						id: 'customer',
+						cell: (info) => info.getValue(),
+						header: () => 'Customer',
+						maxSize: 10
+					},
+					{
+						accessorFn: (row) => row.affiliate,
+						id: 'affiliate',
+						cell: (info) => info.getValue(),
+						header: () => 'Affiliate',
+						maxSize: 10
+					},
+					{
+						accessorFn: (row) => currencyFormatter.format(row.amount),
+						id: 'amount',
+						enableSorting: true,
+						cell: (info) => info.getValue(),
+						header: () => 'Amount'
+					}
+				]}
+			/>
+		{/await}
 	</div>
 	<div
 		class="flex flex-col border border-surface-300-600-token bg-neutral-200 dark:bg-surface-800 shadow-sm p-4 gap-y-4 justify-between rounded col-span-6 xl:col-span-2 row-span-3 xl:row-span-3 min-h-[300px]"
 	>
-		<DonutChart
-			dataset={data.breakdown.map((d) => ({ label: d.category, value: d.totalRevenue + 20 }))}
-		/>
+		{#await data.streamed.breakdown}
+			<!-- promise is pending -->
+		{:then breakdown}
+			<DonutChart
+				dataset={breakdown.map((d) => ({ label: d.category, value: d.totalRevenue + 20 }))}
+			/>
+		{/await}
 	</div>
 </div>
