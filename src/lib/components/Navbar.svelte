@@ -1,5 +1,4 @@
 <script>
-	import Searchbar from './Searchbar.svelte';
 	import ThemeToggle from './ThemeToggle.svelte';
 	import UserProfileButton from './UserProfileButton.svelte';
 	import Gear from './icons/Gear.svelte';
@@ -32,7 +31,6 @@
 					/></svg
 				>
 			</button>
-			<Searchbar />
 		</div>
 		<div class="flex flex-row gap-2 items-center ml-auto">
 			<ThemeToggle />
